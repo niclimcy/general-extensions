@@ -2911,33 +2911,28 @@ var source = (() => {
 
   // src/ComicK/ComicKParser.ts
   var parseMangaDetails = (data, mangaId) => {
-    const countryMap = {
-      kr: "Manhwa",
-      jp: "Manga",
-      cn: "Manhua"
-    };
-    const statusMap = {
-      1: "ONGOING",
-      2: "COMPLETED"
-    };
     const { comic, authors, artists } = data;
     const titles = [
       comic.title,
       ...comic.md_titles.map((titleObj) => titleObj.title)
     ];
-    const tags = [];
-    const countryTitle = countryMap[comic.country];
+    const tagSections = [];
+    const countryTitle = parseComicType(comic.country);
     if (countryTitle) {
-      tags.push({
-        id: `type.${comic.country}`,
-        title: countryTitle
-      });
+      tagSections.push(
+        ...parseTags(
+          [{ slug: comic.country, name: countryTitle }],
+          "type",
+          "Type"
+        )
+      );
     }
-    tags.push(
-      ...comic.md_comic_md_genres.filter((genre) => genre.md_genres?.slug && genre.md_genres?.name).map((genre) => ({
-        id: genre.md_genres.slug,
-        title: genre.md_genres.name
-      }))
+    tagSections.push(
+      ...parseTags(
+        comic.md_comic_md_genres.map((item) => item.md_genres),
+        "genres",
+        "Genres"
+      )
     );
     const mangaInfo = {
       thumbnailUrl: comic.cover_url,
@@ -2948,16 +2943,10 @@ var source = (() => {
         comic.content_rating,
         comic.matureContent
       ),
-      status: statusMap[comic.status] ?? "ONGOING",
+      status: parseComicStatus(comic.status),
       author: authors.map((author) => author.name).join(","),
       artist: artists.map((artists2) => artists2.name).join(","),
-      tagGroups: [
-        {
-          id: "0",
-          title: "genres",
-          tags
-        }
-      ]
+      tagGroups: tagSections
     };
     return {
       mangaId,
@@ -3075,6 +3064,23 @@ var source = (() => {
       return import_types.ContentRating.MATURE;
     }
     return import_types.ContentRating.EVERYONE;
+  }
+  function parseComicType(country) {
+    const comicTypeMap = {
+      kr: "Manhwa",
+      jp: "Manga",
+      cn: "Manhua"
+    };
+    return comicTypeMap[country];
+  }
+  function parseComicStatus(status) {
+    const comicStatusMap = {
+      1: "ONGOING",
+      2: "COMPLETED",
+      3: "CANCELLED",
+      4: "ON HIATUS"
+    };
+    return comicStatusMap[status] || "UNKNOWN";
   }
   function filterChapters(chapters, filter) {
     if (filter.hideUnreleasedChapters) {
