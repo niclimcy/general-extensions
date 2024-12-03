@@ -3604,7 +3604,7 @@ var source = (() => {
       const chapters = [];
       let limit = 1e5;
       if (sinceDate) {
-        limit = 60;
+        limit = LIMIT;
       }
       let page = 1;
       let data = await this.createChapterRequest(
@@ -3745,7 +3745,7 @@ var source = (() => {
       };
       const parsedData = await this.fetchApi(request);
       const manga = parseDiscoverSection(parsedData, section.type);
-      metadata = parsedData.length === LIMIT ? { page: page + 1, completed: false } : { completed: true };
+      metadata = parsedData.length === limit ? { page: page + 1, completed: false } : { completed: true };
       const pagedResults = {
         items: manga,
         metadata
