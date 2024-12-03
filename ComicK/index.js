@@ -3523,22 +3523,18 @@ var source = (() => {
         value: "",
         title: "Created At"
       });
-      try {
-        const searchTags = await this.getSearchTags();
-        for (const tags of searchTags) {
-          Application.registerSearchFilter({
-            type: "multiselect",
-            options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
-            id: "tags-" + tags.id,
-            allowExclusion: true,
-            title: tags.title,
-            value: {},
-            allowEmptySelection: false,
-            maximum: void 0
-          });
-        }
-      } catch (e) {
-        throw new Error(JSON.stringify(e));
+      const searchTags = await this.getSearchTags();
+      for (const tags of searchTags) {
+        Application.registerSearchFilter({
+          type: "multiselect",
+          options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
+          id: "genres",
+          allowExclusion: true,
+          title: tags.title,
+          value: {},
+          allowEmptySelection: false,
+          maximum: void 0
+        });
       }
     }
     async getSettingsForm() {
@@ -3667,36 +3663,40 @@ var source = (() => {
       return parseChapterDetails(parsedData, chapter);
     }
     async getSearchTags() {
-      const url = new URLBuilder(COMICK_API).path("genre").query("tachiyomi", "true").build();
-      const request = {
-        url,
-        method: "GET"
-      };
-      const parsedData = await this.fetchApi(request);
-      return parseTags(parsedData);
+      try {
+        const url = new URLBuilder(COMICK_API).path("genre").query("tachiyomi", "true").build();
+        const request = {
+          url,
+          method: "GET"
+        };
+        const parsedData = await this.fetchApi(request);
+        return parseTags(parsedData);
+      } catch {
+        return [];
+      }
     }
     async getSearchResults(query, metadata) {
       if (metadata?.completed)
         return import_types3.EndOfPageResults;
       const page = metadata?.page ?? 1;
       const builder = new URLBuilder(COMICK_API).path("v1.0").path("search").query("page", page.toString()).query("limit", LIMIT.toString()).query("tachiyomi", "true");
-      const getFilterValue = (id) => query.filters.find((filter) => filter.id === id)?.value;
-      const tags = getFilterValue("tags");
-      if (tags && typeof tags === "object") {
+      const getFilterValue = (id) => query.filters.find((filter) => filter.id == id)?.value;
+      const genres = getFilterValue("genres");
+      if (genres && typeof genres === "object") {
         const excludes = [];
-        const genres = [];
-        for (const tag of Object.entries(tags)) {
+        const includes = [];
+        for (const tag of Object.entries(genres)) {
           switch (tag[1]) {
             case "excluded":
               excludes.push(tag[0]);
               break;
             case "included":
-              genres.push(tag[0]);
+              includes.push(tag[0]);
               break;
           }
         }
         builder.query("excludes", excludes);
-        builder.query("genres", genres);
+        builder.query("genres", includes);
       }
       const sort = getFilterValue("sort");
       if (sort && typeof sort === "string") {
