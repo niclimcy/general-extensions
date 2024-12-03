@@ -2987,15 +2987,15 @@ var source = (() => {
     mangaId: chapter.sourceManga.mangaId,
     pages: data.chapter.images.filter((image) => image.url).map((image) => image.url)
   });
-  function parseTags(data) {
+  function parseTags(data, sectionTitle, sectionId) {
     const tags = data.filter((tag) => tag.slug && tag.name).map((tag) => ({
       id: tag.slug,
       title: tag.name
     }));
     return [
       {
-        id: "genres",
-        title: "Genres",
+        id: sectionId,
+        title: sectionTitle,
         tags
       }
     ];
@@ -3523,14 +3523,14 @@ var source = (() => {
         value: "",
         title: "Created At"
       });
-      const searchTags = await this.getSearchTags();
-      for (const tags of searchTags) {
+      const searchTagSections = await this.getSearchTags();
+      for (const tagSection of searchTagSections) {
         Application.registerSearchFilter({
           type: "multiselect",
-          options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
-          id: "genres",
+          options: tagSection.tags.map((x) => ({ id: x.id, value: x.title })),
+          id: tagSection.id,
           allowExclusion: true,
-          title: tags.title,
+          title: tagSection.title,
           value: {},
           allowEmptySelection: false,
           maximum: void 0
@@ -3670,7 +3670,7 @@ var source = (() => {
           method: "GET"
         };
         const parsedData = await this.fetchApi(request);
-        return parseTags(parsedData);
+        return parseTags(parsedData, "Genres", "genres");
       } catch {
         return [];
       }
