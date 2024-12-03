@@ -2987,7 +2987,7 @@ var source = (() => {
     mangaId: chapter.sourceManga.mangaId,
     pages: data.chapter.images.filter((image) => image.url).map((image) => image.url)
   });
-  function parseTags(data, sectionTitle, sectionId) {
+  function parseTags(data, sectionId, sectionTitle) {
     const tags = data.filter((tag) => tag.slug && tag.name).map((tag) => ({
       id: tag.slug,
       title: tag.name
@@ -3670,7 +3670,7 @@ var source = (() => {
           method: "GET"
         };
         const parsedData = await this.fetchApi(request);
-        return parseTags(parsedData, "Genres", "genres");
+        return parseTags(parsedData, "genres", "Genres");
       } catch {
         return [];
       }
