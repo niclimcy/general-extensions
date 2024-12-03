@@ -1932,7 +1932,7 @@ var source = (() => {
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.Form = void 0;
-      var Form3 = class {
+      var Form = class {
         reloadForm() {
           const formId = this["__underlying_formId"];
           if (!formId)
@@ -1940,7 +1940,7 @@ var source = (() => {
           Application.formDidChange(formId);
         }
       };
-      exports.Form = Form3;
+      exports.Form = Form;
     }
   });
 
@@ -1950,21 +1950,21 @@ var source = (() => {
       "use strict";
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.LabelRow = LabelRow2;
+      exports.LabelRow = LabelRow;
       exports.InputRow = InputRow;
-      exports.ToggleRow = ToggleRow2;
+      exports.ToggleRow = ToggleRow;
       exports.SelectRow = SelectRow;
       exports.ButtonRow = ButtonRow;
       exports.NavigationRow = NavigationRow;
       exports.OAuthButtonRow = OAuthButtonRow;
       exports.DeferredItem = DeferredItem;
-      function LabelRow2(id, props) {
+      function LabelRow(id, props) {
         return { ...props, id, type: "labelRow", isHidden: props.isHidden ?? false };
       }
       function InputRow(id, props) {
         return { ...props, id, type: "inputRow", isHidden: props.isHidden ?? false };
       }
-      function ToggleRow2(id, props) {
+      function ToggleRow(id, props) {
         return { ...props, id, type: "toggleRow", isHidden: props.isHidden ?? false };
       }
       function SelectRow(id, props) {
@@ -2001,8 +2001,8 @@ var source = (() => {
       "use strict";
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.Section = Section2;
-      function Section2(params, items) {
+      exports.Section = Section;
+      function Section(params, items) {
         let info;
         if (typeof params === "string") {
           info = { id: params };
@@ -2298,7 +2298,7 @@ var source = (() => {
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.CloudflareError = void 0;
-      var CloudflareError = class extends Error {
+      var CloudflareError2 = class extends Error {
         resolutionRequest;
         type = "cloudflareError";
         constructor(resolutionRequest, message = "Cloudflare bypass is required") {
@@ -2306,7 +2306,7 @@ var source = (() => {
           this.resolutionRequest = resolutionRequest;
         }
       };
-      exports.CloudflareError = CloudflareError;
+      exports.CloudflareError = CloudflareError2;
     }
   });
 
@@ -2319,7 +2319,7 @@ var source = (() => {
       exports.CookieStorageInterceptor = void 0;
       var PaperbackInterceptor_1 = require_PaperbackInterceptor();
       var cookieStateKey = "cookie_store_cookies";
-      var CookieStorageInterceptor = class extends PaperbackInterceptor_1.PaperbackInterceptor {
+      var CookieStorageInterceptor2 = class extends PaperbackInterceptor_1.PaperbackInterceptor {
         options;
         _cookies = {};
         get cookies() {
@@ -2461,7 +2461,7 @@ var source = (() => {
           Application.setState(this.cookies.filter((x) => x.expires), cookieStateKey);
         }
       };
-      exports.CookieStorageInterceptor = CookieStorageInterceptor;
+      exports.CookieStorageInterceptor = CookieStorageInterceptor2;
     }
   });
 
@@ -2800,14 +2800,14 @@ var source = (() => {
     }
   });
 
-  // src/AsuraScans/main.ts
+  // src/Mgeko/main.ts
   var main_exports = {};
   __export(main_exports, {
-    AsuraScans: () => AsuraScans,
-    AsuraScansExtension: () => AsuraScansExtension
+    Mgeko: () => Mgeko,
+    MgekoExtension: () => MgekoExtension
   });
   init_buffer();
-  var import_types5 = __toESM(require_lib(), 1);
+  var import_types3 = __toESM(require_lib(), 1);
 
   // node_modules/cheerio/dist/browser/index.js
   init_buffer();
@@ -17557,140 +17557,38 @@ var source = (() => {
   var parse5 = getParse((content, options, isDocument2, context) => options._useHtmlParser2 ? parseDocument(content, options) : parseWithParse5(content, options, isDocument2, context));
   var load = getLoad(parse5, (dom, options) => options._useHtmlParser2 ? esm_default(dom, options) : renderWithParse5(dom));
 
-  // src/AsuraScans/AsuraConfig.ts
-  init_buffer();
-  var AS_DOMAIN = "https://asuracomic.net";
-  var AS_API_DOMAIN = "https://gg.asuracomic.net";
-
-  // src/AsuraScans/AsuraHelper.ts
-  init_buffer();
-  function getFilterTagsBySection(section, tags) {
-    return tags?.filter((x) => x.startsWith(`${section}:`)).map((x) => {
-      return x.replace(`${section}:`, "");
-    });
-  }
-  var URLBuilder = class {
-    parameters = {};
-    pathComponents = [];
-    baseUrl;
-    constructor(baseUrl) {
-      this.baseUrl = baseUrl.replace(/(^\/)?(?=.*)(\/$)?/gim, "");
-    }
-    addPathComponent(component) {
-      this.pathComponents.push(component.replace(/(^\/)?(?=.*)(\/$)?/gim, ""));
-      return this;
-    }
-    addQueryParameter(key, value) {
-      if (Array.isArray(value) && !value.length) {
-        return this;
-      }
-      const array = this.parameters[key];
-      if (array?.length) {
-        array.push(value);
-      } else {
-        this.parameters[key] = value;
-      }
-      return this;
-    }
-    buildUrl({ addTrailingSlash, includeUndefinedParameters } = {
-      addTrailingSlash: false,
-      includeUndefinedParameters: false
-    }) {
-      let finalUrl = this.baseUrl + "/";
-      finalUrl += this.pathComponents.join("/");
-      finalUrl += addTrailingSlash ? "/" : "";
-      finalUrl += Object.values(this.parameters).length > 0 ? "?" : "";
-      finalUrl += Object.entries(this.parameters).map((entry) => {
-        if (!entry[1] && !includeUndefinedParameters) {
-          return void 0;
-        }
-        if (Array.isArray(entry[1])) {
-          return entry[1].map(
-            (value) => value || includeUndefinedParameters ? `${entry[0]}[]=${value}` : void 0
-          ).filter((x) => x !== void 0).join("&");
-        }
-        if (typeof entry[1] === "object") {
-          return Object.keys(entry[1]).map(
-            (key) => entry[1][key] || includeUndefinedParameters ? `${entry[0]}[${key}]=${entry[1][key]}` : void 0
-          ).filter((x) => x !== void 0).join("&");
-        }
-        return `${entry[0]}=${entry[1]}`;
-      }).filter((x) => x !== void 0).join("&");
-      return finalUrl;
-    }
-  };
-
-  // src/AsuraScans/AsuraInterceptor.ts
+  // src/Mgeko/MgekoParser.ts
   init_buffer();
   var import_types2 = __toESM(require_lib(), 1);
-  var AsuraInterceptor = class extends import_types2.PaperbackInterceptor {
-    async interceptRequest(request) {
-      request.headers = {
-        ...request.headers,
-        referer: `${AS_DOMAIN}/`
-      };
-      return request;
+  var parseMangaDetails = ($2, mangaId) => {
+    const primaryTitle = $2(".novel-title").text().trim();
+    const secondaryTitles = [];
+    secondaryTitles.push(
+      Application.decodeHTMLEntities(
+        $2("img", "div.fixed-img").attr("alt")?.trim() ?? ""
+      )
+    );
+    const altTitles = $2("h2.alternative-title.text1row", "div.main-head").text().trim().split(",");
+    for (const title of altTitles) {
+      secondaryTitles.push(Application.decodeHTMLEntities(title));
     }
-    async interceptResponse(request, response, data2) {
-      return data2;
-    }
-  };
-
-  // src/AsuraScans/AsuraParser.ts
-  init_buffer();
-  var import_types3 = __toESM(require_lib(), 1);
-
-  // src/AsuraScans/AsuraUtils.ts
-  init_buffer();
-  async function setFilters(data2) {
-    for (const genre of data2.genres) {
-      Application.setState(genre.id.toString(), genre.name.toUpperCase());
-    }
-  }
-  async function getFilter(filter4) {
-    const genre = await Application.getState(filter4.toUpperCase()) ?? "";
-    return genre.toString();
-  }
-  async function getMangaId(slug) {
-    const id = idCleaner(slug);
-    const gotSlug = await Application.getState(id) ?? "";
-    if (!gotSlug) {
-      Application.setState(id, slug);
-      return slug;
-    }
-    return gotSlug;
-  }
-  function idCleaner(str) {
-    let cleanId = str;
-    cleanId = cleanId.replace(/\/$/, "");
-    cleanId = cleanId.split("/").pop() ?? null;
-    cleanId = cleanId?.substring(0, cleanId?.lastIndexOf("-")) ?? null;
-    if (!cleanId) {
-      throw new Error(`Unable to parse id for ${str}`);
-    }
-    return cleanId;
-  }
-
-  // src/AsuraScans/AsuraParser.ts
-  var parseMangaDetails = async ($2, mangaId) => {
-    const title = $2(".text-center > .text-xl.font-bold").text().trim() ?? "";
-    const image = $2('img[alt="poster"]').attr("src") ?? "";
-    const description = $2("span.font-medium.text-sm").text().trim() ?? "";
-    const author = $2('h3:contains("Author")').next().text().trim() ?? "";
-    const artist = $2('h3:contains("Author")').next().text().trim() ?? "";
+    const image = $2("img", "div.fixed-img").attr("data-src") ?? "";
+    const author = $2("span", "div.author").next().text().trim();
+    const description = Application.decodeHTMLEntities(
+      $2(".description").first().text().trim()
+    );
     const arrayTags = [];
-    for (const tag of $2("button", $2('h3:contains("Genres")').next()).toArray()) {
-      const label = $2(tag).text().trim();
-      const filterName = label.toLocaleUpperCase();
-      const id = await getFilter(filterName);
-      if (!id || !label)
+    for (const tag of $2("li", "div.categories").toArray()) {
+      const title = $2(tag).text().trim();
+      const id = encodeURI($2(tag).text().trim());
+      if (!id || !title)
         continue;
-      arrayTags.push({ id: `genres:${id}`, title: label });
+      arrayTags.push({ id, title });
     }
     const tagSections = [
       { id: "0", title: "genres", tags: arrayTags }
     ];
-    const rawStatus = $2('h3:contains("Status")').next().text().trim() ?? "";
+    const rawStatus = $2("small:contains(Status)", "div.header-stats").prev().text().trim();
     let status = "ONGOING";
     switch (rawStatus.toUpperCase()) {
       case "ONGOING":
@@ -17699,56 +17597,56 @@ var source = (() => {
       case "COMPLETED":
         status = "Completed";
         break;
-      case "HIATUS":
-        status = "Hiatus";
-        break;
-      case "SEASON END":
-        status = "Season End";
-        break;
-      case "COMING SOON":
-        status = "Coming Soon";
-        break;
       default:
         status = "Ongoing";
         break;
     }
-    const titles = [load(title).text()];
     return {
       mangaId,
       mangaInfo: {
-        primaryTitle: titles.shift(),
-        secondaryTitles: titles,
-        status,
-        author: load(author).text(),
-        artist: load(artist).text(),
-        tagGroups: tagSections,
-        synopsis: load(description).text(),
         thumbnailUrl: image,
-        contentRating: import_types3.ContentRating.EVERYONE
+        synopsis: description,
+        primaryTitle,
+        secondaryTitles,
+        contentRating: import_types2.ContentRating.MATURE,
+        status,
+        author,
+        tagGroups: tagSections
       }
     };
   };
   var parseChapters = ($2, sourceManga) => {
     const chapters = [];
-    let sortingIndex = 0;
-    for (const chapter of $2(
-      "div",
-      "div.pl-4.pr-2.pb-4.overflow-y-auto"
-    ).toArray()) {
-      const id = $2("a", chapter).attr("href")?.replace(/\/$/, "")?.split("/").pop()?.trim() ?? "";
-      if (!id || isNaN(Number(id)))
+    let sortingIndex = chapters.length - 1;
+    for (const chapter of $2("li", "ul.chapter-list").toArray()) {
+      const title = Application.decodeHTMLEntities(
+        $2("strong.chapter-title", chapter).text().trim()
+      );
+      const chapterId = $2("a", chapter).attr("href")?.replace(/\/$/, "").split("/").pop() ?? "";
+      if (!chapterId)
         continue;
-      const rawDate = $2("h3", chapter).last().text().trim() ?? "";
-      const date = new Date(rawDate.replace(/\b(\d+)(st|nd|rd|th)\b/g, "$1"));
+      const datePieces = $2("time.chapter-update", chapter).attr("datetime")?.split(",") ?? [];
+      const date = new Date(
+        String(`${datePieces[0] ?? ""}, ${datePieces[1] ?? ""}`)
+      );
+      const chapNumRegex = /(\d+)(?:[-.]\d+)?/.exec(title);
+      let chapNum = 0;
+      if (chapNumRegex?.[1]) {
+        let chapRegex = chapNumRegex[1];
+        if (chapRegex.includes("-"))
+          chapRegex = chapRegex.replace("-", ".");
+        chapNum = Number(chapRegex);
+      }
       chapters.push({
-        chapterId: id,
-        title: `Chapter ${id}`,
+        chapterId,
+        sourceManga,
         langCode: "\u{1F1EC}\u{1F1E7}",
-        chapNum: Number(id),
+        chapNum,
+        title: isNaN(chapNum) ? title : "",
+        // Display original title if chapNum parsing fails
         volume: 0,
         publishDate: date,
-        sortingIndex,
-        sourceManga
+        sortingIndex
       });
       sortingIndex--;
     }
@@ -17757,451 +17655,334 @@ var source = (() => {
         `Couldn't find any chapters for mangaId: ${sourceManga.mangaId}!`
       );
     }
-    return chapters.map((chapter) => {
-      if (chapter.sortingIndex != void 0)
-        chapter.sortingIndex += chapters.length;
-      return chapter;
-    });
+    return chapters;
   };
-  var parseFeaturedSection = async ($2) => {
-    const featuredSection_Array = [];
-    for (const manga of $2("li.slide", "ul.slider.animated").toArray()) {
-      const slug = $2("a", manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      if (!slug)
+  var parseChapterDetails = ($2, chapter) => {
+    const pages = [];
+    for (const img of $2("img", "div#chapter-reader").toArray()) {
+      let image = $2(img).attr("src") ?? "";
+      if (!image)
+        image = $2(img).attr("data-src") ?? "";
+      if (!image)
         continue;
-      const id = await getMangaId(slug);
-      const image = $2("img", manga).first().attr("src") ?? "";
-      const title = $2("a", manga).first().text().trim() ?? "";
-      if (!id || !title)
-        continue;
-      featuredSection_Array.push({
-        imageUrl: image,
-        title: load(title).text(),
-        mangaId: id,
-        type: "featuredCarouselItem"
-      });
+      pages.push(image);
     }
-    return featuredSection_Array;
-  };
-  var parseUpdateSection = async ($2) => {
-    const updateSection_Array = [];
-    for (const manga of $2("div.w-full", "div.grid.grid-rows-1").toArray()) {
-      const slug = $2("a", manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      if (!slug)
-        continue;
-      const id = await getMangaId(slug);
-      const image = $2("img", manga).first().attr("src") ?? "";
-      const title = $2(".col-span-9 > .font-medium > a", manga).first().text().trim() ?? "";
-      const subtitle = $2(".flex.flex-col .flex-row a", manga).first().text().trim() ?? "";
-      if (!id || !title)
-        continue;
-      updateSection_Array.push({
-        imageUrl: image,
-        title: load(title).text(),
-        mangaId: id,
-        subtitle: load(subtitle).text(),
-        type: "prominentCarouselItem"
-      });
-    }
-    return updateSection_Array;
-  };
-  var parsePopularSection = async ($2) => {
-    const popularSection_Array = [];
-    for (const manga of $2("a", "div.flex-wrap.hidden").toArray()) {
-      const slug = $2(manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      if (!slug)
-        continue;
-      const id = await getMangaId(slug);
-      const image = $2("img", manga).first().attr("src") ?? "";
-      const title = $2("span.block.font-bold", manga).first().text().trim() ?? "";
-      const subtitle = $2("span.block.font-bold", manga).first().next().text().trim() ?? "";
-      if (!id || !title)
-        continue;
-      popularSection_Array.push({
-        imageUrl: image,
-        title: load(title).text(),
-        chapterId: load(subtitle).text(),
-        mangaId: id,
-        type: "chapterUpdatesCarouselItem"
-      });
-    }
-    return popularSection_Array;
-  };
-  var parseTags = (filters2) => {
-    const createTags = (filterItems, prefix) => {
-      return filterItems.map((item) => ({
-        id: `${prefix}:${item.id ?? item.name}`,
-        title: item.name
-      }));
+    return {
+      id: chapter.chapterId,
+      mangaId: chapter.sourceManga.mangaId,
+      pages
     };
-    const tagSections = [
-      // Tag section for genres
-      {
-        id: "0",
-        title: "genres",
-        tags: createTags(filters2.genres, "genres")
-      },
-      // Tag section for status
-      {
-        id: "1",
-        title: "status",
-        tags: createTags(filters2.statuses, "status")
-      },
-      // Tag section for types
-      {
-        id: "2",
-        title: "type",
-        tags: createTags(filters2.types, "type")
-      },
-      // Tag section for order
-      {
-        id: "3",
-        title: "order",
-        tags: createTags(
-          filters2.order.map((order) => ({ id: order.value, name: order.name })),
-          "order"
-        )
-      }
-    ];
-    return tagSections;
   };
-  var parseSearch = async ($2) => {
+  var parseViewMore = ($2) => {
+    const manga = [];
     const collectedIds = [];
-    const itemArray = [];
-    for (const item of $2("a", "div.grid.grid-cols-2").toArray()) {
-      const slug = $2(item).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      if (!slug)
+    for (const obj of $2("li.novel-item", "ul.novel-list").toArray()) {
+      const image = $2("img", obj).first().attr("data-src") ?? "";
+      const title = $2("img", obj).first().attr("alt") ?? "";
+      const id = $2("a", obj).attr("href")?.replace(/\/$/, "").split("/").pop() ?? "";
+      const getChapter = $2("div.novel-stats > strong", obj).text().trim();
+      const chapNumRegex = /(\d+\.?\d?)+/.exec(getChapter);
+      let chapNum = 0;
+      if (chapNumRegex?.[1])
+        chapNum = Number(chapNumRegex[1]);
+      const subtitle = chapNum ? `Chapter ${chapNum.toString()}` : "Chapter N/A";
+      if (!id || !title || collectedIds.includes(id))
         continue;
-      const id = await getMangaId(slug);
-      const image = $2("img", item).first().attr("src") ?? "";
-      const title = $2("span.block.font-bold", item).first().text().trim() ?? "";
-      const subtitle = $2("span.block.font-bold", item).first().next().text().trim() ?? "";
-      itemArray.push({
-        imageUrl: image,
-        title: load(title).text(),
+      manga.push({
+        type: "simpleCarouselItem",
         mangaId: id,
-        subtitle
+        title: Application.decodeHTMLEntities(title),
+        imageUrl: image,
+        subtitle: Application.decodeHTMLEntities(subtitle)
       });
       collectedIds.push(id);
     }
-    return itemArray;
+    return manga;
+  };
+  var parseTags = ($2) => {
+    const arrayTags = [];
+    for (const tag of $2(".genre-select-i label").toArray()) {
+      const title = $2(tag).attr("for") ?? "";
+      if (!title)
+        continue;
+      arrayTags.push({ id: title, title });
+    }
+    const tagSections = [
+      { id: "genres", title: "genres", tags: arrayTags }
+    ];
+    return tagSections;
+  };
+  var parseSearch = ($2) => {
+    const mangas = [];
+    for (const obj of $2("li.novel-item", "ul.novel-list").toArray()) {
+      let image = $2("img", obj).first().attr("data-src") ?? "";
+      if (image.startsWith("/"))
+        image = "https://www.mgeko.cc" + image;
+      const title = $2("img", obj).first().attr("alt") ?? "";
+      const id = $2("a", obj).attr("href")?.replace(/\/$/, "").split("/").pop() ?? "";
+      const getChapter = $2("div.novel-stats > strong", obj).text().trim();
+      const chapNumRegex = /(\d+\.?\d?)+/.exec(getChapter);
+      let chapNum = 0;
+      if (chapNumRegex?.[1])
+        chapNum = Number(chapNumRegex[1]);
+      const subtitle = chapNum ? `Chapter ' ${chapNum.toString()}` : "Chapter N/A";
+      if (!id || !title)
+        continue;
+      mangas.push({
+        mangaId: id,
+        title: Application.decodeHTMLEntities(title),
+        imageUrl: image,
+        subtitle: Application.decodeHTMLEntities(subtitle)
+      });
+    }
+    return mangas;
   };
   var isLastPage = ($2) => {
-    let isLast = true;
-    const hasItems = $2("a", "div.grid.grid-cols-2").toArray().length > 0;
-    if (hasItems)
-      isLast = false;
+    let isLast = false;
+    const pages = $2(".mg-pagination-table").first().remove().text().trim().split(" / ");
+    const currentPage = Number(pages[0]);
+    const lastPage = Number(pages[1]);
+    if (currentPage >= lastPage)
+      isLast = true;
     return isLast;
   };
 
-  // src/AsuraScans/AsuraSettings.ts
-  init_buffer();
-  var import_types4 = __toESM(require_lib(), 1);
-  function toBoolean(value) {
-    return (value ?? false) === "true";
-  }
-  function getHQthumb() {
-    return toBoolean(Application.getState("HQthumb"));
-  }
-  function setHQthumb(value) {
-    Application.setState(value.toString(), "HQthumb");
-  }
-  var AsuraSettingForm = class extends import_types4.Form {
-    getSections() {
-      return [
-        (0, import_types4.Section)("Asura Settings", [
-          (0, import_types4.ToggleRow)("hq_thumb", {
-            title: "HQ Thumbnails",
-            value: getHQthumb(),
-            onValueChange: Application.Selector(
-              this,
-              "hQthumbChange"
-            )
-          }),
-          (0, import_types4.LabelRow)("label", {
-            title: "",
-            subtitle: "Enabling HQ thumbnails will use more bandwidth and will load thumbnails slightly slower."
-          })
-        ])
-      ];
+  // src/Mgeko/main.ts
+  var MGEKO_DOMAIN = "https://www.mgeko.cc";
+  var MgekoInterceptor = class extends import_types3.PaperbackInterceptor {
+    async interceptRequest(request) {
+      request.headers = {
+        ...request.headers ?? {},
+        ...{
+          referer: `${MGEKO_DOMAIN}/`,
+          "user-agent": await Application.getDefaultUserAgent()
+        }
+      };
+      return request;
     }
-    async hQthumbChange(value) {
-      setHQthumb(value);
+    async interceptResponse(request, response, data2) {
+      return data2;
     }
   };
-
-  // src/AsuraScans/main.ts
-  var AsuraScansExtension = class {
-    globalRateLimiter = new import_types5.BasicRateLimiter("ratelimiter", {
+  var MgekoExtension = class {
+    globalRateLimiter = new import_types3.BasicRateLimiter("rateLimiter", {
       numberOfRequests: 4,
       bufferInterval: 1,
       ignoreImages: true
     });
-    requestManager = new AsuraInterceptor("main");
+    mainRequestInterceptor = new MgekoInterceptor("main");
+    cookieStorageInterceptor = new import_types3.CookieStorageInterceptor({
+      storage: "stateManager"
+    });
     async initialise() {
       this.globalRateLimiter.registerInterceptor();
-      this.requestManager.registerInterceptor();
-      if (Application.isResourceLimited)
-        return;
-      for (const tags of await this.getSearchTags()) {
-        Application.registerSearchFilter({
-          type: "multiselect",
-          options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
-          id: tags.id,
-          allowExclusion: false,
-          title: tags.title,
-          value: {},
-          allowEmptySelection: true,
-          maximum: void 0
-        });
+      this.mainRequestInterceptor.registerInterceptor();
+      this.cookieStorageInterceptor.registerInterceptor();
+      Application.registerSearchFilter({
+        id: "sortBy",
+        type: "dropdown",
+        options: [
+          { id: "Random", value: "Random" },
+          { id: "New", value: "New" },
+          { id: "Updated", value: "Updated" },
+          { id: "Views", value: "Views" }
+        ],
+        value: "Views",
+        title: "Sort By Filter"
+      });
+      try {
+        const searchTags = await this.getSearchTags();
+        for (const tags of searchTags) {
+          Application.registerSearchFilter({
+            type: "multiselect",
+            options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
+            id: tags.id,
+            allowExclusion: true,
+            title: tags.title,
+            value: {},
+            allowEmptySelection: true,
+            maximum: void 0
+          });
+        }
+      } catch (e) {
+        console.log(e);
       }
     }
     async getDiscoverSections() {
       return [
         {
-          id: "featured",
-          title: "Featured",
-          type: import_types5.DiscoverSectionType.featured
+          id: "most_viewed",
+          title: "Most Viewed",
+          type: import_types3.DiscoverSectionType.prominentCarousel
+        },
+        {
+          id: "new",
+          title: "New",
+          type: import_types3.DiscoverSectionType.simpleCarousel
         },
         {
           id: "latest_updates",
           title: "Latest Updates",
-          // containsMoreItems: true,
-          type: import_types5.DiscoverSectionType.simpleCarousel
-        },
-        {
-          id: "popular_today",
-          title: "Popular Today",
-          type: import_types5.DiscoverSectionType.chapterUpdates
-        },
-        {
-          id: "type",
-          title: "Types",
-          type: import_types5.DiscoverSectionType.genres
-        },
-        {
-          id: "genres",
-          title: "Genres",
-          type: import_types5.DiscoverSectionType.genres
-        },
-        {
-          id: "status",
-          title: "Status",
-          type: import_types5.DiscoverSectionType.genres
+          type: import_types3.DiscoverSectionType.simpleCarousel
         }
       ];
     }
     async getDiscoverSectionItems(section, metadata) {
-      let items = [];
-      const [_, buffer] = await Application.scheduleRequest({
-        url: AS_DOMAIN,
-        method: "GET"
-      });
-      const $2 = load(Application.arrayBufferToUTF8String(buffer));
-      switch (section.type) {
-        case import_types5.DiscoverSectionType.featured:
-          items = await parseFeaturedSection($2);
-          break;
-        case import_types5.DiscoverSectionType.chapterUpdates:
-          items = await parsePopularSection($2);
-          break;
-        case import_types5.DiscoverSectionType.simpleCarousel:
-          items = await parseUpdateSection($2);
-          break;
-        case import_types5.DiscoverSectionType.genres:
-          if (section.id === "type") {
-            items = [];
-            const tags = await this.getSearchTags();
-            for (const tag of tags[2].tags) {
-              items.push({
-                type: "genresCarouselItem",
-                searchQuery: {
-                  title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
-                },
-                name: tag.title,
-                metadata
-              });
-            }
-          }
-          if (section.id === "genres") {
-            items = [];
-            const tags = await this.getSearchTags();
-            for (const tag of tags[0].tags) {
-              items.push({
-                type: "genresCarouselItem",
-                searchQuery: {
-                  title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
-                },
-                name: tag.title,
-                metadata
-              });
-            }
-          }
-          if (section.id === "status") {
-            items = [];
-            const tags = await this.getSearchTags();
-            for (const tag of tags[1].tags) {
-              items.push({
-                type: "genresCarouselItem",
-                searchQuery: {
-                  title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
-                },
-                name: tag.title,
-                metadata
-              });
-            }
-          }
+      switch (section.id) {
+        case "most_viewed":
+          return this.getMostViewedSectionItems(metadata);
+        case "new":
+          return this.getNewSectionItems(metadata);
+        case "latest_updates":
+          return this.getLatestUpdatesSectionItems(metadata);
+        default:
+          return {
+            items: [],
+            metadata: void 0
+          };
       }
-      return { items, metadata };
     }
-    async getSettingsForm() {
-      return new AsuraSettingForm();
-    }
-    getMangaShareUrl(mangaId) {
-      return `${AS_DOMAIN}/series/${mangaId}`;
-    }
-    async getMangaDetails(mangaId) {
-      const request = {
-        url: new URLBuilder(AS_DOMAIN).addPathComponent("series").addPathComponent(mangaId).buildUrl(),
-        method: "GET"
-      };
-      const [_, buffer] = await Application.scheduleRequest(request);
-      const $2 = load(Application.arrayBufferToUTF8String(buffer));
-      return await parseMangaDetails($2, mangaId);
-    }
-    async getChapters(sourceManga, sinceDate) {
-      console.log(sinceDate);
-      const request = {
-        url: new URLBuilder(AS_DOMAIN).addPathComponent("series").addPathComponent(sourceManga.mangaId).buildUrl(),
-        method: "GET"
-      };
-      const [_, buffer] = await Application.scheduleRequest(request);
-      const $2 = load(Application.arrayBufferToUTF8String(buffer));
-      return parseChapters($2, sourceManga);
-    }
-    async getChapterDetails(chapter) {
-      const url = new URLBuilder(AS_DOMAIN).addPathComponent("series").addPathComponent(chapter.sourceManga.mangaId).addPathComponent("chapter").addPathComponent(chapter.chapterId).buildUrl();
-      const request = {
-        url,
-        method: "GET"
-      };
-      const [response, buffer] = await Application.scheduleRequest(request);
-      console.log(`Status: ${response.status}`);
-      const result = await Application.executeInWebView({
-        source: {
-          html: Application.arrayBufferToUTF8String(buffer),
-          baseUrl: AS_DOMAIN
-        },
-        inject: `const array = Array.from(document.querySelectorAll('img[alt*="chapter"]'));const imgSrcArray = Array.from(array).map(img => img.src); return imgSrcArray;`,
-        storage: { cookies: [] }
-      });
-      console.log();
-      const pages = result.result;
-      return {
-        mangaId: chapter.sourceManga.mangaId,
-        id: chapter.chapterId,
-        pages
-      };
-    }
-    async getGenres() {
-      try {
-        const request = {
-          url: new URLBuilder(AS_API_DOMAIN).addPathComponent("api").addPathComponent("series").addPathComponent("filters").buildUrl(),
-          method: "GET"
-        };
-        const [_, buffer] = await Application.scheduleRequest(request);
-        const data2 = JSON.parse(
-          Application.arrayBufferToUTF8String(buffer)
-        );
-        return data2.genres.map((a) => a.name);
-      } catch (error) {
-        throw new Error(error);
+    async saveCloudflareBypassCookies(cookies) {
+      for (const cookie of cookies) {
+        if (cookie.name.startsWith("cf") || cookie.name.startsWith("_cf") || cookie.name.startsWith("__cf")) {
+          this.cookieStorageInterceptor.setCookie(cookie);
+        }
       }
     }
     async getSearchTags() {
-      console.log("search tag soup");
-      try {
-        const request = {
-          url: new URLBuilder(AS_API_DOMAIN).addPathComponent("api").addPathComponent("series").addPathComponent("filters").buildUrl(),
-          method: "GET"
-        };
-        const [_, buffer] = await Application.scheduleRequest(request);
-        const data2 = JSON.parse(
-          Application.arrayBufferToUTF8String(buffer)
-        );
-        await setFilters(data2);
-        return parseTags(data2);
-      } catch (error) {
-        throw new Error(error);
-      }
+      const request = {
+        url: `${MGEKO_DOMAIN}/browse-comics`,
+        method: "GET"
+      };
+      const [response, data2] = await Application.scheduleRequest(request);
+      this.checkCloudflareStatus(response.status);
+      const $2 = load(Application.arrayBufferToUTF8String(data2));
+      return parseTags($2);
     }
-    async supportsTagExclusion() {
-      return false;
+    async getMangaDetails(mangaId) {
+      const request = {
+        url: `${MGEKO_DOMAIN}/manga/${mangaId}`,
+        method: "GET"
+      };
+      const [response, data2] = await Application.scheduleRequest(request);
+      this.checkCloudflareStatus(response.status);
+      const $2 = load(Application.arrayBufferToUTF8String(data2));
+      return parseMangaDetails($2, mangaId);
+    }
+    async getChapters(sourceManga) {
+      const request = {
+        url: `${MGEKO_DOMAIN}/manga/${sourceManga.mangaId}/all-chapters`,
+        method: "GET"
+      };
+      const [response, data2] = await Application.scheduleRequest(request);
+      this.checkCloudflareStatus(response.status);
+      const $2 = load(Application.arrayBufferToUTF8String(data2));
+      return parseChapters($2, sourceManga);
+    }
+    async getChapterDetails(chapter) {
+      const request = {
+        url: `${MGEKO_DOMAIN}/reader/en/${chapter.chapterId}`,
+        method: "GET"
+      };
+      const [response, data2] = await Application.scheduleRequest(request);
+      this.checkCloudflareStatus(response.status);
+      const $2 = load(Application.arrayBufferToUTF8String(data2));
+      return parseChapterDetails($2, chapter);
     }
     async getSearchResults(query, metadata) {
       const page = metadata?.page ?? 1;
-      let urlBuilder = new URLBuilder(AS_DOMAIN).addPathComponent("series").addQueryParameter("page", page.toString());
-      if (query?.title) {
-        urlBuilder = urlBuilder.addQueryParameter(
-          "name",
-          encodeURIComponent(query?.title.replace(/[’‘´`'-][a-z]*/g, "%") ?? "")
-        );
+      let request;
+      if (query.title) {
+        request = {
+          url: `${MGEKO_DOMAIN}/search/?search=${encodeURI(query.title)}`,
+          method: "GET"
+        };
+      } else {
+        const getFilterValue = (id) => query.filters.find((filter4) => filter4.id === id)?.value;
+        const genres = getFilterValue("genres");
+        const genreIncluded = Object.entries(genres).filter(([, value]) => value === "included").map(([key]) => key).join(",");
+        const genreExcluded = Object.entries(genres).filter(([, value]) => value === "excluded").map(([key]) => key).join(",");
+        const sortBy = getFilterValue("sortBy");
+        request = {
+          url: `${MGEKO_DOMAIN}/browse-advanced?sort_by=${sortBy}&genre_included=${genreIncluded}&genre_excluded=${genreExcluded}&results=${page.toString()}`,
+          method: "GET"
+        };
       }
-      const includedTags = [];
-      for (const filter4 of query.filters) {
-        const tags = filter4.value ?? {};
-        for (const tag of Object.entries(tags)) {
-          includedTags.push(tag[0]);
-        }
-      }
-      urlBuilder = urlBuilder.addQueryParameter(
-        "genres",
-        getFilterTagsBySection("genres", includedTags)
-      ).addQueryParameter(
-        "status",
-        getFilterTagsBySection("status", includedTags)
-      ).addQueryParameter("types", getFilterTagsBySection("type", includedTags)).addQueryParameter(
-        "order",
-        getFilterTagsBySection("order", includedTags)
-      );
-      const response = await Application.scheduleRequest({
-        url: urlBuilder.buildUrl(),
-        method: "GET"
-      });
-      const $2 = load(Application.arrayBufferToUTF8String(response[1]));
-      const items = await parseSearch($2);
+      const [response, data2] = await Application.scheduleRequest(request);
+      this.checkCloudflareStatus(response.status);
+      const $2 = load(Application.arrayBufferToUTF8String(data2));
+      const manga = parseSearch($2);
       metadata = !isLastPage($2) ? { page: page + 1 } : void 0;
-      return {
-        items,
+      const pagedResults = {
+        items: manga,
         metadata
       };
+      return pagedResults;
+    }
+    async getMostViewedSectionItems(metadata) {
+      if (metadata?.completed)
+        return import_types3.EndOfPageResults;
+      const page = metadata?.page ?? 1;
+      const request = {
+        url: `${MGEKO_DOMAIN}/browse-comics/?results=${page.toString()}&filter=Views`,
+        method: "GET"
+      };
+      const [response, data2] = await Application.scheduleRequest(request);
+      this.checkCloudflareStatus(response.status);
+      const $2 = load(Application.arrayBufferToUTF8String(data2));
+      const manga = parseViewMore($2);
+      metadata = !isLastPage($2) ? { page: page + 1 } : void 0;
+      const pagedResults = {
+        items: manga,
+        metadata
+      };
+      return pagedResults;
+    }
+    async getNewSectionItems(metadata) {
+      if (metadata?.completed)
+        return import_types3.EndOfPageResults;
+      const page = metadata?.page ?? 1;
+      const request = {
+        url: `${MGEKO_DOMAIN}/browse-comics/?results=${page.toString()}&filter=New`,
+        method: "GET"
+      };
+      const [response, data2] = await Application.scheduleRequest(request);
+      this.checkCloudflareStatus(response.status);
+      const $2 = load(Application.arrayBufferToUTF8String(data2));
+      const manga = parseViewMore($2);
+      metadata = !isLastPage($2) ? { page: page + 1 } : void 0;
+      const pagedResults = {
+        items: manga,
+        metadata
+      };
+      return pagedResults;
+    }
+    async getLatestUpdatesSectionItems(metadata) {
+      if (metadata?.completed)
+        return import_types3.EndOfPageResults;
+      const page = metadata?.page ?? 1;
+      const request = {
+        url: `${MGEKO_DOMAIN}/browse-comics/?results=${page.toString()}&filter=Updated`,
+        method: "GET"
+      };
+      const [response, data2] = await Application.scheduleRequest(request);
+      this.checkCloudflareStatus(response.status);
+      const $2 = load(Application.arrayBufferToUTF8String(data2));
+      const manga = parseViewMore($2);
+      metadata = !isLastPage($2) ? { page: page + 1 } : void 0;
+      const pagedResults = {
+        items: manga,
+        metadata
+      };
+      return pagedResults;
+    }
+    checkCloudflareStatus(status) {
+      if (status == 503 || status == 403) {
+        throw new import_types3.CloudflareError({ url: MGEKO_DOMAIN, method: "GET" });
+      }
     }
   };
-  var AsuraScans = new AsuraScansExtension();
+  var Mgeko = new MgekoExtension();
   return __toCommonJS(main_exports);
 })();
 /*! Bundled license information:
