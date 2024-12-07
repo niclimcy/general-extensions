@@ -16664,7 +16664,7 @@ var source = (() => {
         }
         if (typeof value === "object") {
           return Object.entries(value).map(
-            ([objKey, objValue]) => objValue !== void 0 && objValue !== null ? `${key}[${objKey}]=${objValue}` : void 0
+            ([objKey, objValue]) => objValue !== void 0 ? `${key}[${objKey}]=${objValue}` : void 0
           ).filter((x) => x !== void 0);
         }
         return value === "" ? [] : [`${key}=${value}`];
