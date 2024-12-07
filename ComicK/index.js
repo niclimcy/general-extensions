@@ -2800,7 +2800,9 @@ var source = (() => {
     baseUrl;
     queryParams = {};
     pathSegments = [];
-    constructor(baseUrl) {
+    queryArrayPrefix;
+    constructor(baseUrl, queryArrayPrefix) {
+      this.queryArrayPrefix = queryArrayPrefix;
       this.baseUrl = baseUrl.replace(/\/+$/, "");
     }
     addPath(segment) {
@@ -2815,7 +2817,7 @@ var source = (() => {
       const fullPath = this.pathSegments.length > 0 ? `/${this.pathSegments.join("/")}` : "";
       const queryString = Object.entries(this.queryParams).flatMap(([key, value]) => {
         if (Array.isArray(value)) {
-          return value.length > 0 ? value.map((v) => `${key}=${v}`) : [];
+          return value.length > 0 ? value.map((v) => `${key}${this.queryArrayPrefix}=${v}`) : [];
         }
         if (typeof value === "object") {
           return Object.entries(value).map(

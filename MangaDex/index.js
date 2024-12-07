@@ -2800,7 +2800,9 @@ var source = (() => {
     baseUrl;
     queryParams = {};
     pathSegments = [];
-    constructor(baseUrl) {
+    queryArrayPrefix;
+    constructor(baseUrl, queryArrayPrefix) {
+      this.queryArrayPrefix = queryArrayPrefix;
       this.baseUrl = baseUrl.replace(/\/+$/, "");
     }
     addPath(segment) {
@@ -2815,7 +2817,7 @@ var source = (() => {
       const fullPath = this.pathSegments.length > 0 ? `/${this.pathSegments.join("/")}` : "";
       const queryString = Object.entries(this.queryParams).flatMap(([key, value]) => {
         if (Array.isArray(value)) {
-          return value.length > 0 ? value.map((v) => `${key}=${v}`) : [];
+          return value.length > 0 ? value.map((v) => `${key}${this.queryArrayPrefix}=${v}`) : [];
         }
         if (typeof value === "object") {
           return Object.entries(value).map(
@@ -4862,7 +4864,7 @@ var source = (() => {
       const [_, buffer] = await Application.scheduleRequest(request);
       const data = Application.arrayBufferToUTF8String(buffer);
       const json = typeof data === "string" ? JSON.parse(data) : data;
-      return new URLBuilder(MANGADEX_API).addPath("manga").addQuery("limit", 100).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]).addQuery(
+      return new URLBuilder(MANGADEX_API, "[]").addPath("manga").addQuery("limit", 100).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]).addQuery(
         "ids",
         json.data.relationships.filter((x) => x.type == "manga").map((x) => x.id)
       ).build();
@@ -4870,7 +4872,7 @@ var source = (() => {
     async getMangaDetails(mangaId) {
       this.checkId(mangaId);
       const request = {
-        url: new URLBuilder(MANGADEX_API).addPath("manga").addPath(mangaId).addQuery("includes", ["author", "artist", "cover_art"]).build(),
+        url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addPath(mangaId).addQuery("includes", ["author", "artist", "cover_art"]).build(),
         method: "GET"
       };
       const [_, buffer] = await Application.scheduleRequest(request);
@@ -4892,7 +4894,7 @@ var source = (() => {
       let hasResults = true;
       while (hasResults) {
         const request = {
-          url: new URLBuilder(MANGADEX_API).addPath("manga").addPath(mangaId).addPath("feed").addQuery("limit", 500).addQuery("offset", offset).addQuery("includes", ["scanlation_group"]).addQuery("translatedLanguage", languages).addQuery("order", {
+          url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addPath(mangaId).addPath("feed").addQuery("limit", 500).addQuery("offset", offset).addQuery("includes", ["scanlation_group"]).addQuery("translatedLanguage", languages).addQuery("order", {
             volume: "desc",
             chapter: "desc",
             publishAt: "desc"
@@ -4989,7 +4991,7 @@ var source = (() => {
       const searchType = query.title?.match(
         /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i
       ) ? "ids[]" : "title";
-      const url = new URLBuilder(MANGADEX_API).addPath("manga").addQuery(searchType, query?.title?.replace(/ /g, "+") || "").addQuery("limit", 100).addQuery("hasAvailableChapters", true).addQuery("availableTranslatedLanguage", languages).addQuery("offset", offset).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]);
+      const url = new URLBuilder(MANGADEX_API, "[]").addPath("manga").addQuery(searchType, query?.title?.replace(/ /g, "+") || "").addQuery("limit", 100).addQuery("hasAvailableChapters", true).addQuery("availableTranslatedLanguage", languages).addQuery("offset", offset).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]);
       const includedTags = [];
       const excludedTags = [];
       for (const filter of query.filters) {
@@ -5074,7 +5076,7 @@ var source = (() => {
       const ratings = getRatings();
       const languages = getLanguages();
       const [_, buffer] = await Application.scheduleRequest({
-        url: new URLBuilder(MANGADEX_API).addPath("manga").addQuery("limit", 100).addQuery("hasAvailableChapters", true).addQuery("availableTranslatedLanguage", languages).addQuery("order", { followedCount: "desc" }).addQuery("offset", offset).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]).build(),
+        url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addQuery("limit", 100).addQuery("hasAvailableChapters", true).addQuery("availableTranslatedLanguage", languages).addQuery("order", { followedCount: "desc" }).addQuery("offset", offset).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]).build(),
         method: "GET"
       });
       const data = Application.arrayBufferToUTF8String(buffer);
@@ -5104,7 +5106,7 @@ var source = (() => {
       const ratings = getRatings();
       const languages = getLanguages();
       const [, buffer] = await Application.scheduleRequest({
-        url: new URLBuilder(MANGADEX_API).addPath("manga").addQuery("limit", 100).addQuery("hasAvailableChapters", true).addQuery("availableTranslatedLanguage", languages).addQuery("order", { latestUploadedChapter: "desc" }).addQuery("offset", offset).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]).build(),
+        url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addQuery("limit", 100).addQuery("hasAvailableChapters", true).addQuery("availableTranslatedLanguage", languages).addQuery("order", { latestUploadedChapter: "desc" }).addQuery("offset", offset).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]).build(),
         method: "GET"
       });
       const data = Application.arrayBufferToUTF8String(buffer);
@@ -5120,7 +5122,7 @@ var source = (() => {
         getHomepageThumbnail
       );
       const [, chaptersBuffer] = await Application.scheduleRequest({
-        url: new URLBuilder(MANGADEX_API).addPath("chapter").addQuery("limit", 100).addQuery(
+        url: new URLBuilder(MANGADEX_API, "[]").addPath("chapter").addQuery("limit", 100).addQuery(
           "ids",
           json.data.map((x) => x.attributes.latestUploadedChapter)
         ).build(),
@@ -5156,7 +5158,7 @@ var source = (() => {
       const ratings = getRatings();
       const languages = getLanguages();
       const [_, buffer] = await Application.scheduleRequest({
-        url: new URLBuilder(MANGADEX_API).addPath("manga").addQuery("limit", 100).addQuery("hasAvailableChapters", true).addQuery("availableTranslatedLanguage", languages).addQuery("order", { createdAt: "desc" }).addQuery("offset", offset).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]).build(),
+        url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addQuery("limit", 100).addQuery("hasAvailableChapters", true).addQuery("availableTranslatedLanguage", languages).addQuery("order", { createdAt: "desc" }).addQuery("offset", offset).addQuery("contentRating", ratings).addQuery("includes", ["cover_art"]).build(),
         method: "GET"
       });
       const data = Application.arrayBufferToUTF8String(buffer);
@@ -5197,7 +5199,7 @@ var source = (() => {
       }
       for (const addition of changeset.additions) {
         await Application.scheduleRequest({
-          url: new URLBuilder(MANGADEX_API).addPath("manga").addPath(addition.mangaId).addPath("status").build(),
+          url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addPath(addition.mangaId).addPath("status").build(),
           method: "post",
           headers: {
             "Content-Type": "application/json"
@@ -5209,7 +5211,7 @@ var source = (() => {
       }
       for (const deletion of changeset.deletions) {
         await Application.scheduleRequest({
-          url: new URLBuilder(MANGADEX_API).addPath("manga").addPath(deletion.mangaId).addPath("status").build(),
+          url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addPath(deletion.mangaId).addPath("status").build(),
           method: "post",
           headers: {
             "Content-Type": "application/json"
@@ -5223,7 +5225,7 @@ var source = (() => {
         throw new Error("You need to be logged in");
       }
       const [_, buffer] = await Application.scheduleRequest({
-        url: new URLBuilder(MANGADEX_API).addPath("manga").addPath("status").build(),
+        url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addPath("status").build(),
         method: "get"
       });
       const json = JSON.parse(Application.arrayBufferToUTF8String(buffer));
@@ -5245,7 +5247,7 @@ var source = (() => {
           `requesting ${offset} to ${offset + limit} items (total: ${batch.length})`
         );
         const [_2, buffer2] = await Application.scheduleRequest({
-          url: new URLBuilder(MANGADEX_API).addPath("manga").addQuery("ids", batch).addQuery("includes", ["author", "artist", "cover_art"]).addQuery("contentRating", [
+          url: new URLBuilder(MANGADEX_API, "[]").addPath("manga").addQuery("ids", batch).addQuery("includes", ["author", "artist", "cover_art"]).addQuery("contentRating", [
             "safe",
             "suggestive",
             "erotica",
