@@ -1,5 +1,5 @@
 {
-  "buildTime": "2024-12-03T17:51:30.981Z",
+  "buildTime": "2024-12-07T18:13:04.541Z",
   "builtWith": {
     "toolchain": "1.0.0-alpha.29",
     "types": "1.0.0-alpha.29"
@@ -12,7 +12,7 @@
     {
       "name": "Asura Scans",
       "description": "The asuracomic.net extension.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "icon": "icon.png",
       "language": "en",
       "contentRating": "MATURE",
@@ -69,6 +69,27 @@
         32
       ],
       "id": "MangaDex"
+    },
+    {
+      "icon": "icon.png",
+      "name": "MangaPlus",
+      "version": "0.9.0",
+      "description": "Extension that pulls manga from Manga+ by Shueisha",
+      "contentRating": "SAFE",
+      "developers": [
+        {
+          "name": "Yves Pa",
+          "github": "https://github.com/YvesPa"
+        }
+      ],
+      "badges": [],
+      "capabilities": [
+        1,
+        4,
+        32,
+        64
+      ],
+      "id": "MangaPlus"
     },
     {
       "icon": "icon.png",
