@@ -16639,16 +16639,43 @@ var source = (() => {
   var parse5 = getParse((content, options, isDocument2, context) => options._useHtmlParser2 ? parseDocument(content, options) : parseWithParse5(content, options, isDocument2, context));
   var load = getLoad(parse5, (dom, options) => options._useHtmlParser2 ? esm_default(dom, options) : renderWithParse5(dom));
 
-  // src/utils/url-builder.ts
+  // src/utils/url-builder/array-query-variant.ts
+  init_buffer();
+
+  // src/utils/url-builder/base.ts
   init_buffer();
   var URLBuilder = class {
     baseUrl;
     queryParams = {};
     pathSegments = [];
-    queryArrayPrefix;
-    constructor(baseUrl, queryArrayPrefix) {
-      this.queryArrayPrefix = queryArrayPrefix;
+    constructor(baseUrl) {
       this.baseUrl = baseUrl.replace(/\/+$/, "");
+    }
+    formatArrayQuery(key, value) {
+      return value.length > 0 ? value.map((v) => `${key}[]=${v}`) : [];
+    }
+    formatObjectQuery(key, value) {
+      return Object.entries(value).map(
+        ([objKey, objValue]) => objValue !== void 0 ? `${key}[${objKey}]=${objValue}` : void 0
+      ).filter((x) => x !== void 0);
+    }
+    formatQuery(queryParams) {
+      return Object.entries(queryParams).flatMap(([key, value]) => {
+        if (Array.isArray(value)) {
+          return this.formatArrayQuery(key, value);
+        }
+        if (typeof value === "object") {
+          return this.formatObjectQuery(key, value);
+        }
+        return value === "" ? [] : [`${key}=${value}`];
+      }).join("&");
+    }
+    build() {
+      const fullPath = this.pathSegments.length > 0 ? `/${this.pathSegments.join("/")}` : "";
+      const queryString = this.formatQuery(this.queryParams);
+      if (queryString.length > 0)
+        return `${this.baseUrl}${fullPath}?${queryString}`;
+      return `${this.baseUrl}${fullPath}`;
     }
     addPath(segment) {
       this.pathSegments.push(segment.replace(/^\/+|\/+$/g, ""));
@@ -16658,25 +16685,17 @@ var source = (() => {
       this.queryParams[key] = value;
       return this;
     }
-    build() {
-      const fullPath = this.pathSegments.length > 0 ? `/${this.pathSegments.join("/")}` : "";
-      const queryString = Object.entries(this.queryParams).flatMap(([key, value]) => {
-        if (Array.isArray(value)) {
-          return value.length > 0 ? value.map((v) => `${key}${this.queryArrayPrefix}=${v}`) : [];
-        }
-        if (typeof value === "object") {
-          return Object.entries(value).map(
-            ([objKey, objValue]) => objValue !== void 0 ? `${key}[${objKey}]=${objValue}` : void 0
-          ).filter((x) => x !== void 0);
-        }
-        return value === "" ? [] : [`${key}=${value}`];
-      }).join("&");
-      return queryString ? `${this.baseUrl}${fullPath}?${queryString}` : `${this.baseUrl}${fullPath}`;
-    }
     reset() {
       this.queryParams = {};
       this.pathSegments = [];
       return this;
+    }
+  };
+
+  // src/utils/url-builder/array-query-variant.ts
+  var URLBuilder2 = class extends URLBuilder {
+    formatArrayQuery(key, value) {
+      return value.length > 0 ? value.map((v) => `${key}=${v}`) : [];
     }
   };
 
@@ -17064,7 +17083,7 @@ var source = (() => {
     }
     async getDiscoverSectionItems(section, metadata) {
       let items = [];
-      let urlBuilder = new URLBuilder(AS_DOMAIN);
+      let urlBuilder = new URLBuilder2(AS_DOMAIN);
       const page = metadata?.page ?? 1;
       if (section.type === import_types5.DiscoverSectionType.simpleCarousel) {
         urlBuilder = urlBuilder.addPath("series");
@@ -17164,7 +17183,7 @@ var source = (() => {
     }
     async getMangaDetails(mangaId) {
       const request = {
-        url: new URLBuilder(AS_DOMAIN).addPath("series").addPath(mangaId).build(),
+        url: new URLBuilder2(AS_DOMAIN).addPath("series").addPath(mangaId).build(),
         method: "GET"
       };
       const [_, buffer] = await Application.scheduleRequest(request);
@@ -17173,7 +17192,7 @@ var source = (() => {
     }
     async getChapters(sourceManga) {
       const request = {
-        url: new URLBuilder(AS_DOMAIN).addPath("series").addPath(sourceManga.mangaId).build(),
+        url: new URLBuilder2(AS_DOMAIN).addPath("series").addPath(sourceManga.mangaId).build(),
         method: "GET"
       };
       const [_, buffer] = await Application.scheduleRequest(request);
@@ -17181,7 +17200,7 @@ var source = (() => {
       return parseChapters($2, sourceManga);
     }
     async getChapterDetails(chapter) {
-      const url = new URLBuilder(AS_DOMAIN).addPath("series").addPath(chapter.sourceManga.mangaId).addPath("chapter").addPath(chapter.chapterId).build();
+      const url = new URLBuilder2(AS_DOMAIN).addPath("series").addPath(chapter.sourceManga.mangaId).addPath("chapter").addPath(chapter.chapterId).build();
       const request = {
         url,
         method: "GET"
@@ -17205,7 +17224,7 @@ var source = (() => {
     async getGenres() {
       try {
         const request = {
-          url: new URLBuilder(AS_API_DOMAIN).addPath("api").addPath("series").addPath("filters").build(),
+          url: new URLBuilder2(AS_API_DOMAIN).addPath("api").addPath("series").addPath("filters").build(),
           method: "GET"
         };
         const [_, buffer] = await Application.scheduleRequest(request);
@@ -17220,7 +17239,7 @@ var source = (() => {
     async getSearchTags() {
       try {
         const request = {
-          url: new URLBuilder(AS_API_DOMAIN).addPath("api").addPath("series").addPath("filters").build(),
+          url: new URLBuilder2(AS_API_DOMAIN).addPath("api").addPath("series").addPath("filters").build(),
           method: "GET"
         };
         const [_, buffer] = await Application.scheduleRequest(request);
@@ -17238,7 +17257,7 @@ var source = (() => {
     }
     async getSearchResults(query, metadata) {
       const page = metadata?.page ?? 1;
-      let newUrlBuilder = new URLBuilder(AS_DOMAIN).addPath("series").addQuery("page", page.toString());
+      let newUrlBuilder = new URLBuilder2(AS_DOMAIN).addPath("series").addQuery("page", page.toString());
       if (query?.title) {
         newUrlBuilder = newUrlBuilder.addQuery(
           "name",

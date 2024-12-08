@@ -2794,16 +2794,43 @@ var source = (() => {
   init_buffer();
   var import_types3 = __toESM(require_lib(), 1);
 
-  // src/utils/url-builder.ts
+  // src/utils/url-builder/array-query-variant.ts
+  init_buffer();
+
+  // src/utils/url-builder/base.ts
   init_buffer();
   var URLBuilder = class {
     baseUrl;
     queryParams = {};
     pathSegments = [];
-    queryArrayPrefix;
-    constructor(baseUrl, queryArrayPrefix) {
-      this.queryArrayPrefix = queryArrayPrefix;
+    constructor(baseUrl) {
       this.baseUrl = baseUrl.replace(/\/+$/, "");
+    }
+    formatArrayQuery(key, value) {
+      return value.length > 0 ? value.map((v) => `${key}[]=${v}`) : [];
+    }
+    formatObjectQuery(key, value) {
+      return Object.entries(value).map(
+        ([objKey, objValue]) => objValue !== void 0 ? `${key}[${objKey}]=${objValue}` : void 0
+      ).filter((x) => x !== void 0);
+    }
+    formatQuery(queryParams) {
+      return Object.entries(queryParams).flatMap(([key, value]) => {
+        if (Array.isArray(value)) {
+          return this.formatArrayQuery(key, value);
+        }
+        if (typeof value === "object") {
+          return this.formatObjectQuery(key, value);
+        }
+        return value === "" ? [] : [`${key}=${value}`];
+      }).join("&");
+    }
+    build() {
+      const fullPath = this.pathSegments.length > 0 ? `/${this.pathSegments.join("/")}` : "";
+      const queryString = this.formatQuery(this.queryParams);
+      if (queryString.length > 0)
+        return `${this.baseUrl}${fullPath}?${queryString}`;
+      return `${this.baseUrl}${fullPath}`;
     }
     addPath(segment) {
       this.pathSegments.push(segment.replace(/^\/+|\/+$/g, ""));
@@ -2813,25 +2840,17 @@ var source = (() => {
       this.queryParams[key] = value;
       return this;
     }
-    build() {
-      const fullPath = this.pathSegments.length > 0 ? `/${this.pathSegments.join("/")}` : "";
-      const queryString = Object.entries(this.queryParams).flatMap(([key, value]) => {
-        if (Array.isArray(value)) {
-          return value.length > 0 ? value.map((v) => `${key}${this.queryArrayPrefix}=${v}`) : [];
-        }
-        if (typeof value === "object") {
-          return Object.entries(value).map(
-            ([objKey, objValue]) => objValue !== void 0 ? `${key}[${objKey}]=${objValue}` : void 0
-          ).filter((x) => x !== void 0);
-        }
-        return value === "" ? [] : [`${key}=${value}`];
-      }).join("&");
-      return queryString ? `${this.baseUrl}${fullPath}?${queryString}` : `${this.baseUrl}${fullPath}`;
-    }
     reset() {
       this.queryParams = {};
       this.pathSegments = [];
       return this;
+    }
+  };
+
+  // src/utils/url-builder/array-query-variant.ts
+  var URLBuilder2 = class extends URLBuilder {
+    formatArrayQuery(key, value) {
+      return value.length > 0 ? value.map((v) => `${key}=${v}`) : [];
     }
   };
 
@@ -3600,7 +3619,7 @@ var source = (() => {
       }
     }
     async getMangaDetails(mangaId) {
-      const url = new URLBuilder(COMICK_API).addPath("comic").addPath(mangaId).addQuery("tachiyomi", "true").build();
+      const url = new URLBuilder2(COMICK_API).addPath("comic").addPath(mangaId).addQuery("tachiyomi", "true").build();
       const request = {
         url,
         method: "GET"
@@ -3658,7 +3677,7 @@ var source = (() => {
     }
     async createChapterRequest(mangaId, page, limit = 1e5) {
       const languages2 = getLanguages();
-      const url = new URLBuilder(COMICK_API).addPath("comic").addPath(mangaId).addPath("chapters").addQuery("page", page.toString()).addQuery("limit", limit.toString()).addQuery("lang", languages2.join(",")).addQuery("tachiyomi", "true").build();
+      const url = new URLBuilder2(COMICK_API).addPath("comic").addPath(mangaId).addPath("chapters").addQuery("page", page.toString()).addQuery("limit", limit.toString()).addQuery("lang", languages2.join(",")).addQuery("tachiyomi", "true").build();
       const request = {
         url,
         method: "GET"
@@ -3667,7 +3686,7 @@ var source = (() => {
       return parsedData;
     }
     async getChapterDetails(chapter) {
-      const url = new URLBuilder(COMICK_API).addPath("chapter").addPath(chapter.chapterId).addQuery("tachiyomi", "true").build();
+      const url = new URLBuilder2(COMICK_API).addPath("chapter").addPath(chapter.chapterId).addQuery("tachiyomi", "true").build();
       const request = {
         url,
         method: "GET"
@@ -3677,7 +3696,7 @@ var source = (() => {
     }
     async getSearchTags() {
       try {
-        const url = new URLBuilder(COMICK_API).addPath("genre").addQuery("tachiyomi", "true").build();
+        const url = new URLBuilder2(COMICK_API).addPath("genre").addQuery("tachiyomi", "true").build();
         const request = {
           url,
           method: "GET"
@@ -3692,7 +3711,7 @@ var source = (() => {
       if (metadata?.completed)
         return import_types3.EndOfPageResults;
       const page = metadata?.page ?? 1;
-      const builder = new URLBuilder(COMICK_API).addPath("v1.0").addPath("search").addQuery("page", page.toString()).addQuery("limit", LIMIT.toString()).addQuery("tachiyomi", "true");
+      const builder = new URLBuilder2(COMICK_API).addPath("v1.0").addPath("search").addQuery("page", page.toString()).addQuery("limit", LIMIT.toString()).addQuery("tachiyomi", "true");
       const getFilterValue = (id) => query.filters.find((filter) => filter.id == id)?.value;
       const genres = getFilterValue("genres");
       if (genres && typeof genres === "object") {
@@ -3751,7 +3770,7 @@ var source = (() => {
       if (metadata?.completed)
         return import_types3.EndOfPageResults;
       const page = metadata?.page ?? 1;
-      const url = new URLBuilder(COMICK_API).addPath("v1.0").addPath("search").addQuery("sort", sort).addQuery("limit", limit.toString()).addQuery("page", "1").addQuery("tachiyomi", "true").build();
+      const url = new URLBuilder2(COMICK_API).addPath("v1.0").addPath("search").addQuery("sort", sort).addQuery("limit", limit.toString()).addQuery("page", "1").addQuery("tachiyomi", "true").build();
       const request = {
         url,
         method: "GET"
