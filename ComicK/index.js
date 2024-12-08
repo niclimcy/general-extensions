@@ -3619,9 +3619,8 @@ var source = (() => {
       }
     }
     async getMangaDetails(mangaId) {
-      const url = new URLBuilder2(COMICK_API).addPath("comic").addPath(mangaId).addQuery("tachiyomi", "true").build();
       const request = {
-        url,
+        url: new URLBuilder2(COMICK_API).addPath("comic").addPath(mangaId).addQuery("tachiyomi", "true").build(),
         method: "GET"
       };
       const parsedData = await this.fetchApi(request);
@@ -3677,18 +3676,16 @@ var source = (() => {
     }
     async createChapterRequest(mangaId, page, limit = 1e5) {
       const languages2 = getLanguages();
-      const url = new URLBuilder2(COMICK_API).addPath("comic").addPath(mangaId).addPath("chapters").addQuery("page", page.toString()).addQuery("limit", limit.toString()).addQuery("lang", languages2.join(",")).addQuery("tachiyomi", "true").build();
       const request = {
-        url,
+        url: new URLBuilder2(COMICK_API).addPath("comic").addPath(mangaId).addPath("chapters").addQuery("page", page.toString()).addQuery("limit", limit.toString()).addQuery("lang", languages2.join(",")).addQuery("tachiyomi", "true").build(),
         method: "GET"
       };
       const parsedData = await this.fetchApi(request);
       return parsedData;
     }
     async getChapterDetails(chapter) {
-      const url = new URLBuilder2(COMICK_API).addPath("chapter").addPath(chapter.chapterId).addQuery("tachiyomi", "true").build();
       const request = {
-        url,
+        url: new URLBuilder2(COMICK_API).addPath("chapter").addPath(chapter.chapterId).addQuery("tachiyomi", "true").build(),
         method: "GET"
       };
       const parsedData = await this.fetchApi(request);
@@ -3696,9 +3693,8 @@ var source = (() => {
     }
     async getSearchTags() {
       try {
-        const url = new URLBuilder2(COMICK_API).addPath("genre").addQuery("tachiyomi", "true").build();
         const request = {
-          url,
+          url: new URLBuilder2(COMICK_API).addPath("genre").addQuery("tachiyomi", "true").build(),
           method: "GET"
         };
         const parsedData = await this.fetchApi(request);
@@ -3770,9 +3766,8 @@ var source = (() => {
       if (metadata?.completed)
         return import_types3.EndOfPageResults;
       const page = metadata?.page ?? 1;
-      const url = new URLBuilder2(COMICK_API).addPath("v1.0").addPath("search").addQuery("sort", sort).addQuery("limit", limit.toString()).addQuery("page", "1").addQuery("tachiyomi", "true").build();
       const request = {
-        url,
+        url: new URLBuilder2(COMICK_API).addPath("v1.0").addPath("search").addQuery("sort", sort).addQuery("limit", limit.toString()).addQuery("page", "1").addQuery("tachiyomi", "true").build(),
         method: "GET"
       };
       const parsedData = await this.fetchApi(request);
