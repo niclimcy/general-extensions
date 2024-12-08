@@ -3555,7 +3555,13 @@ var source = (() => {
         value: "",
         title: "Created At"
       });
-      const searchTagSections = await this.getSearchTags();
+      let searchTagSections;
+      try {
+        const genres = await this.getGenres();
+        searchTagSections = parseTags(genres, "genres", "Genres");
+      } catch {
+        searchTagSections = [];
+      }
       for (const tagSection of searchTagSections) {
         Application.registerSearchFilter({
           type: "multiselect",
@@ -3588,6 +3594,11 @@ var source = (() => {
           id: "latest_uploads",
           title: "Latest Uploads",
           type: import_types3.DiscoverSectionType.simpleCarousel
+        },
+        {
+          id: "genres",
+          title: "Genres",
+          type: import_types3.DiscoverSectionType.genres
         }
       ];
     }
@@ -3614,6 +3625,8 @@ var source = (() => {
             "uploaded",
             20
           );
+        case "genres":
+          return this.getDiscoverSectionGenres();
         default:
           return this.getDiscoverSectionItemsWrapper(section, metadata, "", 20);
       }
@@ -3691,18 +3704,6 @@ var source = (() => {
       const parsedData = await this.fetchApi(request);
       return parseChapterDetails(parsedData, chapter);
     }
-    async getSearchTags() {
-      try {
-        const request = {
-          url: new URLBuilder2(COMICK_API).addPath("genre").addQuery("tachiyomi", "true").build(),
-          method: "GET"
-        };
-        const parsedData = await this.fetchApi(request);
-        return parseTags(parsedData, "genres", "Genres");
-      } catch {
-        return [];
-      }
-    }
     async getSearchResults(query, metadata) {
       if (metadata?.completed)
         return import_types3.EndOfPageResults;
@@ -3755,6 +3756,28 @@ var source = (() => {
         metadata
       };
       return pagedResults;
+    }
+    async getGenres() {
+      const request = {
+        url: new URLBuilder2(COMICK_API).addPath("genre").addQuery("tachiyomi", "true").build(),
+        method: "GET"
+      };
+      return await this.fetchApi(request);
+    }
+    async getDiscoverSectionGenres() {
+      const genres = await this.getGenres();
+      return {
+        items: genres.map((genre) => ({
+          type: "genresCarouselItem",
+          searchQuery: {
+            title: "",
+            filters: [{ id: "genres", value: { [genre.slug]: "included" } }]
+          },
+          name: genre.name,
+          metadata: void 0
+        })),
+        metadata: void 0
+      };
     }
     async getDiscoverSectionItemsWrapper(section, metadata, sort, limit) {
       if (sort.length == 0) {

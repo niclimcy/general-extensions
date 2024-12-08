@@ -16831,7 +16831,7 @@ var source = (() => {
     }
     return manga;
   };
-  var parseTags = ($2) => {
+  var parseGenreTags = ($2) => {
     const arrayTags = [];
     for (const tag of $2(".genre-select-i label").toArray()) {
       const title = $2(tag).attr("for") ?? "";
@@ -16922,7 +16922,7 @@ var source = (() => {
         value: "Views",
         title: "Sort By Filter"
       });
-      const searchTags = await this.getSearchTags();
+      const searchTags = await this.getGenreTags();
       for (const tags of searchTags) {
         Application.registerSearchFilter({
           type: "multiselect",
@@ -16952,6 +16952,11 @@ var source = (() => {
           id: "latest_updates",
           title: "Latest Updates",
           type: import_types3.DiscoverSectionType.simpleCarousel
+        },
+        {
+          id: "genres",
+          title: "Genres",
+          type: import_types3.DiscoverSectionType.genres
         }
       ];
     }
@@ -16963,6 +16968,8 @@ var source = (() => {
           return this.getNewSectionItems(metadata);
         case "latest_updates":
           return this.getLatestUpdatesSectionItems(metadata);
+        case "genres":
+          return this.getGenreSectionItems();
         default:
           return {
             items: [],
@@ -16977,13 +16984,13 @@ var source = (() => {
         }
       }
     }
-    async getSearchTags() {
+    async getGenreTags() {
       const request = {
         url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-comics").build(),
         method: "GET"
       };
       const $2 = await this.fetchCheerio(request);
-      return parseTags($2);
+      return parseGenreTags($2);
     }
     async getMangaDetails(mangaId) {
       const request = {
@@ -17024,7 +17031,7 @@ var source = (() => {
         const genreExcluded = Object.entries(genres).filter(([, value]) => value === "excluded").map(([key]) => key).join(",");
         const sortBy = getFilterValue("sortBy");
         request = {
-          url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-advanced").addQuery("sort_by", sortBy).addQuery("genre_included", genreIncluded).addQuery("genre_excluded", genreExcluded).addQuery("results", page).build(),
+          url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-comics").addQuery("sort_by", sortBy).addQuery("genre_included", genreIncluded).addQuery("genre_excluded", genreExcluded).addQuery("results", page).build(),
           method: "GET"
         };
       }
@@ -17087,6 +17094,21 @@ var source = (() => {
         metadata
       };
       return pagedResults;
+    }
+    async getGenreSectionItems() {
+      const genres = (await this.getGenreTags())[0];
+      return {
+        items: genres.tags.map((genre) => ({
+          type: "genresCarouselItem",
+          searchQuery: {
+            title: "",
+            filters: [{ id: "genres", value: { [genre.id]: "included" } }]
+          },
+          name: genre.title,
+          metadata: void 0
+        })),
+        metadata: void 0
+      };
     }
     checkCloudflareStatus(status) {
       if (status == 503 || status == 403) {
