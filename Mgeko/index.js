@@ -16639,6 +16639,56 @@ var source = (() => {
   var parse5 = getParse((content, options, isDocument2, context) => options._useHtmlParser2 ? parseDocument(content, options) : parseWithParse5(content, options, isDocument2, context));
   var load = getLoad(parse5, (dom, options) => options._useHtmlParser2 ? esm_default(dom, options) : renderWithParse5(dom));
 
+  // src/utils/url-builder/base.ts
+  init_buffer();
+  var URLBuilder = class {
+    baseUrl;
+    queryParams = {};
+    pathSegments = [];
+    constructor(baseUrl) {
+      this.baseUrl = baseUrl.replace(/\/+$/, "");
+    }
+    formatArrayQuery(key, value) {
+      return value.length > 0 ? value.map((v) => `${key}[]=${v}`) : [];
+    }
+    formatObjectQuery(key, value) {
+      return Object.entries(value).map(
+        ([objKey, objValue]) => objValue !== void 0 ? `${key}[${objKey}]=${objValue}` : void 0
+      ).filter((x) => x !== void 0);
+    }
+    formatQuery(queryParams) {
+      return Object.entries(queryParams).flatMap(([key, value]) => {
+        if (Array.isArray(value)) {
+          return this.formatArrayQuery(key, value);
+        }
+        if (typeof value === "object") {
+          return this.formatObjectQuery(key, value);
+        }
+        return value === "" ? [] : [`${key}=${value}`];
+      }).join("&");
+    }
+    build() {
+      const fullPath = this.pathSegments.length > 0 ? `/${this.pathSegments.join("/")}` : "";
+      const queryString = this.formatQuery(this.queryParams);
+      if (queryString.length > 0)
+        return `${this.baseUrl}${fullPath}?${queryString}`;
+      return `${this.baseUrl}${fullPath}`;
+    }
+    addPath(segment) {
+      this.pathSegments.push(segment.replace(/^\/+|\/+$/g, ""));
+      return this;
+    }
+    addQuery(key, value) {
+      this.queryParams[key] = value;
+      return this;
+    }
+    reset() {
+      this.queryParams = {};
+      this.pathSegments = [];
+      return this;
+    }
+  };
+
   // src/Mgeko/MgekoParser.ts
   init_buffer();
   var import_types2 = __toESM(require_lib(), 1);
@@ -16929,7 +16979,7 @@ var source = (() => {
     }
     async getSearchTags() {
       const request = {
-        url: `${MGEKO_DOMAIN}/browse-comics`,
+        url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-comics").build(),
         method: "GET"
       };
       const $2 = await this.fetchCheerio(request);
@@ -16945,7 +16995,7 @@ var source = (() => {
     }
     async getChapters(sourceManga) {
       const request = {
-        url: `${MGEKO_DOMAIN}/manga/${sourceManga.mangaId}/all-chapters`,
+        url: new URLBuilder(MGEKO_DOMAIN).addPath("manga").addPath(sourceManga.mangaId).addPath("all-chapters").build(),
         method: "GET"
       };
       const $2 = await this.fetchCheerio(request);
@@ -16953,7 +17003,7 @@ var source = (() => {
     }
     async getChapterDetails(chapter) {
       const request = {
-        url: `${MGEKO_DOMAIN}/reader/en/${chapter.chapterId}`,
+        url: new URLBuilder(MGEKO_DOMAIN).addPath("reader").addPath("en").addPath(chapter.chapterId).build(),
         method: "GET"
       };
       const $2 = await this.fetchCheerio(request);
@@ -16964,7 +17014,7 @@ var source = (() => {
       let request;
       if (query.title) {
         request = {
-          url: `${MGEKO_DOMAIN}/search/?search=${encodeURI(query.title)}`,
+          url: new URLBuilder(MGEKO_DOMAIN).addPath("search").addQuery("search", encodeURI(query.title)).build(),
           method: "GET"
         };
       } else {
@@ -16974,7 +17024,7 @@ var source = (() => {
         const genreExcluded = Object.entries(genres).filter(([, value]) => value === "excluded").map(([key]) => key).join(",");
         const sortBy = getFilterValue("sortBy");
         request = {
-          url: `${MGEKO_DOMAIN}/browse-advanced?sort_by=${sortBy}&genre_included=${genreIncluded}&genre_excluded=${genreExcluded}&results=${page.toString()}`,
+          url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-advanced").addQuery("sort_by", sortBy).addQuery("genre_included", genreIncluded).addQuery("genre_excluded", genreExcluded).addQuery("results", page).build(),
           method: "GET"
         };
       }
@@ -16992,7 +17042,7 @@ var source = (() => {
         return import_types3.EndOfPageResults;
       const page = metadata?.page ?? 1;
       const request = {
-        url: `${MGEKO_DOMAIN}/browse-comics/?results=${page.toString()}&filter=Views`,
+        url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-comics").addQuery("results", page).addQuery("filter", "Views").build(),
         method: "GET"
       };
       const $2 = await this.fetchCheerio(request);
@@ -17009,7 +17059,7 @@ var source = (() => {
         return import_types3.EndOfPageResults;
       const page = metadata?.page ?? 1;
       const request = {
-        url: `${MGEKO_DOMAIN}/browse-comics/?results=${page.toString()}&filter=New`,
+        url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-comics").addQuery("results", page).addQuery("filter", "New").build(),
         method: "GET"
       };
       const $2 = await this.fetchCheerio(request);
@@ -17026,7 +17076,7 @@ var source = (() => {
         return import_types3.EndOfPageResults;
       const page = metadata?.page ?? 1;
       const request = {
-        url: `${MGEKO_DOMAIN}/browse-comics/?results=${page.toString()}&filter=Updated`,
+        url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-comics").addQuery("results", page).addQuery("filter", "Updated").build(),
         method: "GET"
       };
       const $2 = await this.fetchCheerio(request);
