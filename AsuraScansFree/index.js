@@ -1828,7 +1828,7 @@ var source = (() => {
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.Form = void 0;
-      var Form3 = class {
+      var Form = class {
         reloadForm() {
           const formId = this["__underlying_formId"];
           if (!formId)
@@ -1841,7 +1841,7 @@ var source = (() => {
           return false;
         }
       };
-      exports.Form = Form3;
+      exports.Form = Form;
     }
   });
 
@@ -1851,21 +1851,21 @@ var source = (() => {
       "use strict";
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.LabelRow = LabelRow2;
+      exports.LabelRow = LabelRow;
       exports.InputRow = InputRow;
-      exports.ToggleRow = ToggleRow2;
+      exports.ToggleRow = ToggleRow;
       exports.SelectRow = SelectRow;
       exports.ButtonRow = ButtonRow;
       exports.NavigationRow = NavigationRow;
       exports.OAuthButtonRow = OAuthButtonRow;
       exports.DeferredItem = DeferredItem;
-      function LabelRow2(id, props) {
+      function LabelRow(id, props) {
         return { ...props, id, type: "labelRow", isHidden: props.isHidden ?? false };
       }
       function InputRow(id, props) {
         return { ...props, id, type: "inputRow", isHidden: props.isHidden ?? false };
       }
-      function ToggleRow2(id, props) {
+      function ToggleRow(id, props) {
         return { ...props, id, type: "toggleRow", isHidden: props.isHidden ?? false };
       }
       function SelectRow(id, props) {
@@ -1902,8 +1902,8 @@ var source = (() => {
       "use strict";
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.Section = Section2;
-      function Section2(params, items) {
+      exports.Section = Section;
+      function Section(params, items) {
         let info;
         if (typeof params === "string") {
           info = { id: params };
@@ -2212,7 +2212,7 @@ var source = (() => {
       exports.CookieStorageInterceptor = void 0;
       var PaperbackInterceptor_1 = require_PaperbackInterceptor();
       var cookieStateKey = "cookie_store_cookies";
-      var CookieStorageInterceptor = class extends PaperbackInterceptor_1.PaperbackInterceptor {
+      var CookieStorageInterceptor2 = class extends PaperbackInterceptor_1.PaperbackInterceptor {
         options;
         _cookies = {};
         get cookies() {
@@ -2354,7 +2354,7 @@ var source = (() => {
           Application.setState(this.cookies.filter((x) => x.expires), cookieStateKey);
         }
       };
-      exports.CookieStorageInterceptor = CookieStorageInterceptor;
+      exports.CookieStorageInterceptor = CookieStorageInterceptor2;
     }
   });
 
@@ -2677,14 +2677,14 @@ var source = (() => {
     }
   });
 
-  // src/AsuraScans/main.ts
+  // src/AsuraScansFree/main.ts
   var main_exports = {};
   __export(main_exports, {
-    AsuraScans: () => AsuraScans,
-    AsuraScansExtension: () => AsuraScansExtension
+    AsuraScansFree: () => AsuraScansFree,
+    AsuraScansFreeExtension: () => AsuraScansFreeExtension
   });
   init_buffer();
-  var import_types5 = __toESM(require_lib(), 1);
+  var import_types4 = __toESM(require_lib(), 1);
 
   // node_modules/cheerio/dist/browser/index.js
   init_buffer();
@@ -16584,27 +16584,19 @@ var source = (() => {
     }
   };
 
-  // src/AsuraScans/AsuraConfig.ts
+  // src/AsuraScansFree/AsuraScansFreeConfig.ts
   init_buffer();
-  var AS_DOMAIN = "https://asuracomic.net";
-  var AS_API_DOMAIN = "https://gg.asuracomic.net";
+  var ASF_DOMAIN = "https://asurascansfree.com/";
 
-  // src/AsuraScans/AsuraHelper.ts
-  init_buffer();
-  function getFilterTagsBySection(section, tags) {
-    return tags?.filter((x) => x.startsWith(`${section}:`)).map((x) => {
-      return x.replace(`${section}:`, "");
-    });
-  }
-
-  // src/AsuraScans/AsuraInterceptor.ts
+  // src/AsuraScansFree/AsuraScansFreeInterceptor.ts
   init_buffer();
   var import_types2 = __toESM(require_lib(), 1);
-  var AsuraInterceptor = class extends import_types2.PaperbackInterceptor {
+  var AsuraFreeInterceptor = class extends import_types2.PaperbackInterceptor {
     async interceptRequest(request) {
       request.headers = {
         ...request.headers,
-        referer: `${AS_DOMAIN}/`
+        referer: `${ASF_DOMAIN}/`,
+        "user-agent": await Application.getDefaultUserAgent()
       };
       return request;
     }
@@ -16613,116 +16605,15 @@ var source = (() => {
     }
   };
 
-  // src/AsuraScans/AsuraParser.ts
-  init_buffer();
-  var import_types4 = __toESM(require_lib(), 1);
-
-  // src/AsuraScans/AsuraSettings.ts
+  // src/AsuraScansFree/AsuraScansFreeParser.ts
   init_buffer();
   var import_types3 = __toESM(require_lib(), 1);
-  function toBoolean(value) {
-    return (value ?? false) === "true";
-  }
-  function getHQthumb() {
-    return toBoolean(Application.getState("HQthumb"));
-  }
-  function getShowUpcomingChapters() {
-    return toBoolean(Application.getState("prerelease"));
-  }
-  function setHQthumb(value) {
-    Application.setState(value.toString(), "HQthumb");
-  }
-  function setShowUpcomingChapters(value) {
-    Application.setState(value.toString(), "prerelease");
-  }
-  var AsuraSettingForm = class extends import_types3.Form {
-    getSections() {
-      return [
-        (0, import_types3.Section)("Asura Settings", [
-          (0, import_types3.ToggleRow)("hq_thumb", {
-            title: "HQ Thumbnails",
-            value: getHQthumb(),
-            onValueChange: Application.Selector(
-              this,
-              "hQthumbChange"
-            )
-          }),
-          (0, import_types3.LabelRow)("label", {
-            title: "",
-            subtitle: "Enabling will show chapters that are only available to Asura+ members. "
-          }),
-          (0, import_types3.ToggleRow)("pre", {
-            title: "Show Upcoming Chapters",
-            value: getShowUpcomingChapters(),
-            onValueChange: Application.Selector(
-              this,
-              "preChange"
-            )
-          }),
-          (0, import_types3.LabelRow)("label", {
-            title: "",
-            subtitle: "Enabling HQ thumbnails will use more bandwidth and will load thumbnails slightly slower."
-          })
-        ])
-      ];
-    }
-    async hQthumbChange(value) {
-      setHQthumb(value);
-    }
-    async preChange(value) {
-      setShowUpcomingChapters(value);
-    }
-  };
-
-  // src/AsuraScans/AsuraUtils.ts
-  init_buffer();
-  async function setFilters(data2) {
-    for (const genre of data2.genres) {
-      Application.setState(genre.id.toString(), genre.name.toUpperCase());
-    }
-  }
-  async function getFilter(filter4) {
-    const genre = await Application.getState(filter4.toUpperCase()) ?? "";
-    return genre.toString();
-  }
-  async function getMangaId(slug) {
-    const id = idCleaner(slug);
-    const gotSlug = await Application.getState(id) ?? "";
-    if (!gotSlug) {
-      Application.setState(id, slug);
-      return slug;
-    }
-    return gotSlug;
-  }
-  function idCleaner(str) {
-    let cleanId = str;
-    cleanId = cleanId.replace(/\/$/, "");
-    cleanId = cleanId.split("/").pop() ?? null;
-    cleanId = cleanId?.substring(0, cleanId?.lastIndexOf("-")) ?? null;
-    if (!cleanId) {
-      throw new Error(`Unable to parse id for ${str}`);
-    }
-    return cleanId;
-  }
-
-  // src/AsuraScans/AsuraParser.ts
   var parseMangaDetails = async ($2, mangaId) => {
-    const title = $2(".text-center > .text-xl.font-bold").text().trim() ?? "";
-    const image = $2('img[alt="poster"]').attr("src") ?? "";
-    const description = $2("span.font-medium.text-sm").text().trim() ?? "";
+    const title = $2(".entry-title").text().trim() ?? "";
+    const image = $2("div.thumb img").attr("src") ?? "";
+    const description = $2("div.entry-content-single p").text().trim() ?? "";
     const author = $2('h3:contains("Author")').next().text().trim() ?? "";
     const artist = $2('h3:contains("Author")').next().text().trim() ?? "";
-    const arrayTags = [];
-    for (const tag of $2("button", $2('h3:contains("Genres")').next()).toArray()) {
-      const label = $2(tag).text().trim();
-      const filterName = label.toLocaleUpperCase();
-      const id = await getFilter(filterName);
-      if (!id || !label) continue;
-      arrayTags.push({ id: `genres:${id}`, title: label });
-    }
-    const tagSections = [
-      { id: "0", title: "genres", tags: arrayTags }
-    ];
     const rawStatus = $2('h3:contains("Status")').next().text().trim() ?? "";
     let status = "ONGOING";
     switch (rawStatus.toUpperCase()) {
@@ -16754,26 +16645,19 @@ var source = (() => {
         status,
         author: load(author).text(),
         artist: load(artist).text(),
-        tagGroups: tagSections,
         synopsis: load(description).text(),
         thumbnailUrl: image,
-        contentRating: import_types4.ContentRating.EVERYONE,
-        shareUrl: new URLBuilder(AS_DOMAIN).addPath("series").addPath(mangaId).build()
+        contentRating: import_types3.ContentRating.EVERYONE
       }
     };
   };
   var parseChapters = ($2, sourceManga) => {
     const chapters = [];
     let sortingIndex = 0;
-    for (const chapter of $2(
-      "div",
-      "div.pl-4.pr-2.pb-4.overflow-y-auto"
-    ).toArray()) {
-      const id = $2("a", chapter).attr("href")?.replace(/\/$/, "")?.split("/").pop()?.trim() ?? "";
+    for (const chapter of $2("div.chbox", "div#chapterlist").toArray()) {
+      const id = $2("a", chapter).attr("href")?.replace(/\/$/, "")?.split("chapter-").pop()?.trim() ?? "";
       if (!id || isNaN(Number(id))) continue;
-      const svg = $2("svg", chapter);
-      if (!getShowUpcomingChapters() && svg.toString() !== "") continue;
-      const rawDate = $2("h3", chapter).last().text().trim() ?? "";
+      const rawDate = $2("span.chapterdate", chapter).last().text().trim() ?? "";
       const date = new Date(rawDate.replace(/\b(\d+)(st|nd|rd|th)\b/g, "$1"));
       chapters.push({
         chapterId: id,
@@ -16798,19 +16682,57 @@ var source = (() => {
       return chapter;
     });
   };
+  var parseChapterDetails = async ($2, mangaId, chapterId) => {
+    const pages = [];
+    const readerScript = $2("script").filter((i, el) => {
+      return $2(el).html()?.includes("ts_reader.run");
+    });
+    if (!readerScript) {
+      throw new Error(`Failed to find page details script for manga ${mangaId}`);
+    }
+    const scriptMatch = readerScript.html()?.match(/ts_reader\.run\((.*?(?=\);|},))/);
+    let scriptStr = "";
+    let scriptObj = {
+      sources: []
+    };
+    if (scriptMatch && scriptMatch[1]) {
+      scriptStr = scriptMatch[1];
+    }
+    if (!scriptStr) {
+      throw new Error(`Failed to parse script for manga ${mangaId}`);
+    }
+    if (!scriptStr.endsWith("}")) {
+      scriptStr = scriptStr + "}";
+    }
+    scriptObj = JSON.parse(scriptStr);
+    console.log(typeof scriptObj);
+    console.log(Object.keys(scriptObj));
+    if (!scriptObj?.sources) {
+      throw new Error(`Failed for find sources property for manga ${mangaId}`);
+    }
+    for (const index2 of scriptObj.sources) {
+      if (index2?.images.length == 0) continue;
+      index2.images.map((p) => pages.push(encodeURI(p.trim())));
+    }
+    const chapterDetails = {
+      id: chapterId,
+      mangaId,
+      pages
+    };
+    return chapterDetails;
+  };
   var parseFeaturedSection = async ($2) => {
     const featuredSection_Array = [];
-    for (const manga of $2("li.slide", "ul.slider.animated").toArray()) {
-      const slug = $2("a", manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
+    for (const manga of $2("a", "div.popconslide").toArray()) {
+      const slug = $2(manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
       if (!slug) continue;
-      const id = await getMangaId(slug);
       const image = $2("img", manga).first().attr("src") ?? "";
-      const title = $2("a", manga).first().text().trim() ?? "";
-      if (!id || !title) continue;
+      const title = $2("div.tt", manga).first().text().trim() ?? "";
+      if (!slug || !title) continue;
       featuredSection_Array.push({
         imageUrl: image,
         title: load(title).text(),
-        mangaId: id,
+        mangaId: slug,
         type: "featuredCarouselItem"
       });
     }
@@ -16818,17 +16740,16 @@ var source = (() => {
   };
   var parseUpdateSection = async ($2) => {
     const updateSectionArray = [];
-    for (const item of $2("a", "div.grid.grid-cols-2").toArray()) {
+    for (const item of $2("a", "div.bsx").toArray()) {
       const slug = $2(item).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
       if (!slug) continue;
-      const id = await getMangaId(slug);
       const image = $2("img", item).first().attr("src") ?? "";
-      const title = $2("span.block.font-bold", item).first().text().trim() ?? "";
-      const subtitle = $2("span.block.font-bold", item).first().next().text().trim() ?? "";
+      const title = $2("div.tt", item).first().text().trim() ?? "";
+      const subtitle = $2("div.epxs", item).text().trim() ?? "";
       updateSectionArray.push({
         imageUrl: image,
         title: load(title).text(),
-        mangaId: id,
+        mangaId: slug,
         subtitle,
         type: "simpleCarouselItem"
       });
@@ -16837,72 +16758,33 @@ var source = (() => {
   };
   var parsePopularSection = async ($2) => {
     const popularSection_Array = [];
-    for (const manga of $2("a", "div.flex-wrap.hidden").toArray()) {
+    for (const manga of $2("a", "div.bsx").toArray()) {
       const slug = $2(manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
       if (!slug) continue;
-      const id = await getMangaId(slug);
       const image = $2("img", manga).first().attr("src") ?? "";
       const title = $2("span.block.font-bold", manga).first().text().trim() ?? "";
       const subtitle = $2("span.block.font-bold", manga).first().next().text().trim() ?? "";
-      if (!id || !title) continue;
+      if (!slug || !title) continue;
       popularSection_Array.push({
         imageUrl: image,
         title: load(title).text(),
         chapterId: load(subtitle).text(),
-        mangaId: id,
+        mangaId: slug,
         type: "chapterUpdatesCarouselItem"
       });
     }
     return popularSection_Array;
   };
-  var parseTags = (filters2) => {
-    const createTags = (filterItems, prefix) => {
-      return filterItems.map((item) => ({
-        id: `${prefix}:${item.id ?? item.name}`,
-        title: item.name
-      }));
-    };
-    const tagSections = [
-      // Tag section for genres
-      {
-        id: "0",
-        title: "genres",
-        tags: createTags(filters2.genres, "genres")
-      },
-      // Tag section for status
-      {
-        id: "1",
-        title: "status",
-        tags: createTags(filters2.statuses, "status")
-      },
-      // Tag section for types
-      {
-        id: "2",
-        title: "type",
-        tags: createTags(filters2.types, "type")
-      },
-      // Tag section for order
-      {
-        id: "3",
-        title: "order",
-        tags: createTags(
-          filters2.order.map((order) => ({ id: order.value, name: order.name })),
-          "order"
-        )
-      }
-    ];
-    return tagSections;
-  };
   var parseSearch = async ($2) => {
     const collectedIds = [];
     const itemArray = [];
-    for (const item of $2("a", "div.grid.grid-cols-2").toArray()) {
+    for (const item of $2("a", "div.listupd").toArray()) {
       const slug = $2(item).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
       if (!slug) continue;
-      const id = await getMangaId(slug);
+      const id = slug;
       const image = $2("img", item).first().attr("src") ?? "";
-      const title = $2("span.block.font-bold", item).first().text().trim() ?? "";
-      const subtitle = $2("span.block.font-bold", item).first().next().text().trim() ?? "";
+      const title = $2("div.tt", item).first().text().trim() ?? "";
+      const subtitle = $2("div.epxs", item).text().trim() ?? "";
       itemArray.push({
         imageUrl: image,
         title: load(title).text(),
@@ -16915,187 +16797,119 @@ var source = (() => {
   };
   var isLastPage = ($2) => {
     let isLast = true;
-    const hasItems = $2("a", "div.grid.grid-cols-2").toArray().length > 0;
+    const hasItems = $2("a.next", ".pagination").toArray().length > 0;
+    console.log("LastItem: " + $2("a.next", ".pagination").toArray().length);
     if (hasItems) isLast = false;
     return isLast;
   };
 
-  // src/AsuraScans/main.ts
-  var AsuraScansExtension = class {
-    globalRateLimiter = new import_types5.BasicRateLimiter("ratelimiter", {
+  // src/AsuraScansFree/main.ts
+  var AsuraScansFreeExtension = class {
+    globalRateLimiter = new import_types4.BasicRateLimiter("ratelimiter", {
       numberOfRequests: 10,
       bufferInterval: 0.5,
       ignoreImages: true
     });
-    requestManager = new AsuraInterceptor("main");
+    requestManager = new AsuraFreeInterceptor("main");
+    cookieStorageInterceptor = new import_types4.CookieStorageInterceptor({
+      storage: "stateManager"
+    });
     async initialise() {
       this.globalRateLimiter.registerInterceptor();
       this.requestManager.registerInterceptor();
+      this.cookieStorageInterceptor.registerInterceptor();
       if (Application.isResourceLimited) return;
-      for (const tags of await this.getSearchTags()) {
-        Application.registerSearchFilter({
-          type: "multiselect",
-          options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
-          id: tags.id,
-          allowExclusion: false,
-          title: tags.title,
-          value: {},
-          allowEmptySelection: true,
-          maximum: void 0
-        });
-      }
     }
     async getDiscoverSections() {
       return [
         {
-          id: "featured",
-          title: "Featured",
-          type: import_types5.DiscoverSectionType.featured
+          id: "popular",
+          title: "Popular Today",
+          type: import_types4.DiscoverSectionType.featured
         },
         {
           id: "latest_updates",
           title: "Latest Updates",
           // containsMoreItems: true,
-          type: import_types5.DiscoverSectionType.simpleCarousel
-        },
-        {
-          id: "popular_today",
-          title: "Popular Today",
-          type: import_types5.DiscoverSectionType.chapterUpdates
-        },
-        {
-          id: "type",
-          title: "Types",
-          type: import_types5.DiscoverSectionType.genres
-        },
-        {
-          id: "genres",
-          title: "Genres",
-          type: import_types5.DiscoverSectionType.genres
-        },
-        {
-          id: "status",
-          title: "Status",
-          type: import_types5.DiscoverSectionType.genres
+          type: import_types4.DiscoverSectionType.simpleCarousel
         }
+        // {
+        //   id: "type",
+        //   title: "Types",
+        //   type: DiscoverSectionType.genres,
+        // },
+        // {
+        //   id: "genres",
+        //   title: "Genres",
+        //   type: DiscoverSectionType.genres,
+        // },
+        // {
+        //   id: "status",
+        //   title: "Status",
+        //   type: DiscoverSectionType.genres,
+        // },
       ];
     }
     async getDiscoverSectionItems(section, metadata) {
       let items = [];
-      let urlBuilder = new URLBuilder2(AS_DOMAIN);
+      let urlBuilder = new URLBuilder2(ASF_DOMAIN);
       const page = metadata?.page ?? 1;
-      if (section.type === import_types5.DiscoverSectionType.simpleCarousel) {
-        urlBuilder = urlBuilder.addPath("series");
-        urlBuilder = urlBuilder.addQuery("page", page.toString());
+      if (section.type === import_types4.DiscoverSectionType.simpleCarousel) {
+        urlBuilder = urlBuilder.addPath("serie");
+        urlBuilder = urlBuilder.addQuery("page", page.toString()).addQuery("order", "update");
       }
       switch (section.type) {
-        case import_types5.DiscoverSectionType.featured: {
-          const [_, buffer] = await Application.scheduleRequest({
+        case import_types4.DiscoverSectionType.featured: {
+          const [status, buffer] = await Application.scheduleRequest({
             url: urlBuilder.build(),
             method: "GET"
           });
+          console.log(status.status);
+          if (status.status !== 200) {
+            throw new Error(`${status.status} code received!`);
+          }
           const $2 = load(Application.arrayBufferToUTF8String(buffer));
           items = await parseFeaturedSection($2);
           break;
         }
-        case import_types5.DiscoverSectionType.chapterUpdates: {
-          const [_, buffer] = await Application.scheduleRequest({
+        case import_types4.DiscoverSectionType.chapterUpdates: {
+          const [status, buffer] = await Application.scheduleRequest({
             url: urlBuilder.build(),
             method: "GET"
           });
+          console.log(status.status);
+          if (status.status !== 200) {
+            throw new Error(`${status.status} code received!`);
+          }
           const $2 = load(Application.arrayBufferToUTF8String(buffer));
           items = await parsePopularSection($2);
           break;
         }
-        case import_types5.DiscoverSectionType.simpleCarousel: {
-          const [_, buffer] = await Application.scheduleRequest({
+        case import_types4.DiscoverSectionType.simpleCarousel: {
+          const [status, buffer] = await Application.scheduleRequest({
             url: urlBuilder.build(),
             method: "GET"
           });
+          console.log(status.status);
+          if (status.status !== 200) {
+            throw new Error(`${status.status} code received!`);
+          }
           const $2 = load(Application.arrayBufferToUTF8String(buffer));
           items = await parseUpdateSection($2);
           metadata = !isLastPage($2) ? { page: page + 1 } : void 0;
           break;
         }
-        case import_types5.DiscoverSectionType.genres:
-          if (section.id === "type") {
-            items = [];
-            const tags = await this.getSearchTags();
-            for (const tag of tags[2].tags) {
-              items.push({
-                type: "genresCarouselItem",
-                searchQuery: {
-                  title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
-                },
-                name: tag.title,
-                metadata
-              });
-            }
-          }
-          if (section.id === "genres") {
-            items = [];
-            const tags = await this.getSearchTags();
-            for (const tag of tags[0].tags) {
-              items.push({
-                type: "genresCarouselItem",
-                searchQuery: {
-                  title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
-                },
-                name: tag.title,
-                metadata
-              });
-            }
-          }
-          if (section.id === "status") {
-            items = [];
-            const tags = await this.getSearchTags();
-            for (const tag of tags[1].tags) {
-              items.push({
-                type: "genresCarouselItem",
-                searchQuery: {
-                  title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
-                },
-                name: tag.title,
-                metadata
-              });
-            }
-          }
+        case import_types4.DiscoverSectionType.genres:
+          break;
       }
       return { items, metadata };
     }
-    async getSettingsForm() {
-      return new AsuraSettingForm();
-    }
     getMangaShareUrl(mangaId) {
-      return `${AS_DOMAIN}/series/${mangaId}`;
+      return `${ASF_DOMAIN}/serie/${mangaId}`;
     }
     async getMangaDetails(mangaId) {
       const request = {
-        url: new URLBuilder2(AS_DOMAIN).addPath("series").addPath(mangaId).build(),
+        url: new URLBuilder2(ASF_DOMAIN).addPath("serie").addPath(mangaId).build(),
         method: "GET"
       };
       const [_, buffer] = await Application.scheduleRequest(request);
@@ -17104,7 +16918,7 @@ var source = (() => {
     }
     async getChapters(sourceManga) {
       const request = {
-        url: new URLBuilder2(AS_DOMAIN).addPath("series").addPath(sourceManga.mangaId).build(),
+        url: new URLBuilder2(ASF_DOMAIN).addPath("serie").addPath(sourceManga.mangaId).build(),
         method: "GET"
       };
       const [_, buffer] = await Application.scheduleRequest(request);
@@ -17112,87 +16926,33 @@ var source = (() => {
       return parseChapters($2, sourceManga);
     }
     async getChapterDetails(chapter) {
-      const url = new URLBuilder2(AS_DOMAIN).addPath("series").addPath(chapter.sourceManga.mangaId).addPath("chapter").addPath(chapter.chapterId).build();
+      const url = new URLBuilder2(ASF_DOMAIN).addPath(chapter.sourceManga.mangaId + "-chapter-" + chapter.chapterId).build();
       const request = {
         url,
         method: "GET"
       };
       const [, buffer] = await Application.scheduleRequest(request);
-      const result = await Application.executeInWebView({
-        source: {
-          html: Application.arrayBufferToUTF8String(buffer),
-          baseUrl: AS_DOMAIN,
-          loadCSS: false,
-          loadImages: false
-        },
-        inject: `const array = Array.from(document.querySelectorAll('img[alt*="chapter"]'));const imgSrcArray = Array.from(array).map(img => img.src); return imgSrcArray;`,
-        storage: { cookies: [] }
-      });
-      const pages = result.result;
-      return {
-        mangaId: chapter.sourceManga.mangaId,
-        id: chapter.chapterId,
-        pages
-      };
-    }
-    async getGenres() {
-      try {
-        const request = {
-          url: new URLBuilder2(AS_API_DOMAIN).addPath("api").addPath("series").addPath("filters").build(),
-          method: "GET"
-        };
-        const [_, buffer] = await Application.scheduleRequest(request);
-        const data2 = JSON.parse(
-          Application.arrayBufferToUTF8String(buffer)
-        );
-        return data2.genres.map((a) => a.name);
-      } catch (error) {
-        throw new Error(error);
-      }
-    }
-    async getSearchTags() {
-      let tags = Application.getState("tags");
-      if (tags !== void 0) {
-        console.log("bypassing web request");
-        return tags;
-      }
-      try {
-        const request = {
-          url: new URLBuilder2(AS_API_DOMAIN).addPath("api").addPath("series").addPath("filters").build(),
-          method: "GET"
-        };
-        const [_, buffer] = await Application.scheduleRequest(request);
-        const data2 = JSON.parse(
-          Application.arrayBufferToUTF8String(buffer)
-        );
-        await setFilters(data2);
-        tags = parseTags(data2);
-        Application.setState(tags, "tags");
-        return tags;
-      } catch (error) {
-        throw new Error(error);
-      }
+      const $2 = load(Application.arrayBufferToUTF8String(buffer));
+      return parseChapterDetails(
+        $2,
+        chapter.sourceManga.mangaId,
+        chapter.chapterId
+      );
     }
     async supportsTagExclusion() {
       return false;
     }
     async getSearchResults(query, metadata) {
       const page = metadata?.page ?? 1;
-      let newUrlBuilder = new URLBuilder2(AS_DOMAIN).addPath("series").addQuery("page", page.toString());
+      let newUrlBuilder = new URLBuilder2(ASF_DOMAIN).addPath("page").addPath(page.toString());
       if (query?.title) {
         newUrlBuilder = newUrlBuilder.addQuery(
-          "name",
-          encodeURIComponent(query?.title.replace(/[’‘´`'-][a-z]*/g, "%") ?? "")
+          "s",
+          encodeURIComponent(query?.title.replace(/[’‘´`'-][a-z]*/g, "%") ?? "a")
         );
+      } else {
+        newUrlBuilder = newUrlBuilder.addQuery("s", "a");
       }
-      const includedTags = [];
-      for (const filter4 of query.filters) {
-        const tags = filter4.value ?? {};
-        for (const tag of Object.entries(tags)) {
-          includedTags.push(tag[0]);
-        }
-      }
-      newUrlBuilder = newUrlBuilder.addQuery("genres", getFilterTagsBySection("genres", includedTags)).addQuery("status", getFilterTagsBySection("status", includedTags)).addQuery("types", getFilterTagsBySection("type", includedTags)).addQuery("order", getFilterTagsBySection("order", includedTags));
       const response = await Application.scheduleRequest({
         url: newUrlBuilder.build(),
         method: "GET"
@@ -17205,8 +16965,15 @@ var source = (() => {
         metadata
       };
     }
+    async saveCloudflareBypassCookies(cookies) {
+      for (const cookie of cookies) {
+        if (cookie.name.startsWith("cf") || cookie.name.startsWith("_cf") || cookie.name.startsWith("__cf")) {
+          this.cookieStorageInterceptor.setCookie(cookie);
+        }
+      }
+    }
   };
-  var AsuraScans = new AsuraScansExtension();
+  var AsuraScansFree = new AsuraScansFreeExtension();
   return __toCommonJS(main_exports);
 })();
 /*! Bundled license information:
