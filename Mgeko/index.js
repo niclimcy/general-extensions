@@ -16574,6 +16574,84 @@ var source = (() => {
     }
   };
 
+  // src/Mgeko/external/genre-tags.json
+  var genre_tags_default = [
+    {
+      id: "genres",
+      title: "genres",
+      tags: [
+        { id: "Action", title: "Action" },
+        { id: "Adventure", title: "Adventure" },
+        { id: "Comedy", title: "Comedy" },
+        { id: "Cooking", title: "Cooking" },
+        { id: "Manga", title: "Manga" },
+        { id: "Drama", title: "Drama" },
+        { id: "Fantasy", title: "Fantasy" },
+        { id: "Gender bender", title: "Gender bender" },
+        { id: "Harem", title: "Harem" },
+        { id: "Historical", title: "Historical" },
+        { id: "Horror", title: "Horror" },
+        { id: "Isekai", title: "Isekai" },
+        { id: "Josei", title: "Josei" },
+        { id: "Manhua", title: "Manhua" },
+        { id: "Manhwa", title: "Manhwa" },
+        { id: "Martial arts", title: "Martial arts" },
+        { id: "Mature", title: "Mature" },
+        { id: "Mecha", title: "Mecha" },
+        { id: "Medical", title: "Medical" },
+        { id: "Mystery", title: "Mystery" },
+        { id: "One shot", title: "One shot" },
+        { id: "Psychological", title: "Psychological" },
+        { id: "Romance", title: "Romance" },
+        { id: "School life", title: "School life" },
+        { id: "Sci fi", title: "Sci fi" },
+        { id: "Seinen", title: "Seinen" },
+        { id: "Shoujo", title: "Shoujo" },
+        { id: "Shounen", title: "Shounen" },
+        { id: "Slice of life", title: "Slice of life" },
+        { id: "Sports", title: "Sports" },
+        { id: "Supernatural", title: "Supernatural" },
+        { id: "Tragedy", title: "Tragedy" },
+        { id: "Webtoons", title: "Webtoons" },
+        { id: "ladies", title: "ladies" },
+        { id: "Action", title: "Action" },
+        { id: "Adventure", title: "Adventure" },
+        { id: "Comedy", title: "Comedy" },
+        { id: "Cooking", title: "Cooking" },
+        { id: "Manga", title: "Manga" },
+        { id: "Drama", title: "Drama" },
+        { id: "Fantasy", title: "Fantasy" },
+        { id: "Gender bender", title: "Gender bender" },
+        { id: "Harem", title: "Harem" },
+        { id: "Historical", title: "Historical" },
+        { id: "Horror", title: "Horror" },
+        { id: "Isekai", title: "Isekai" },
+        { id: "Josei", title: "Josei" },
+        { id: "Manhua", title: "Manhua" },
+        { id: "Manhwa", title: "Manhwa" },
+        { id: "Martial arts", title: "Martial arts" },
+        { id: "Mature", title: "Mature" },
+        { id: "Mecha", title: "Mecha" },
+        { id: "Medical", title: "Medical" },
+        { id: "Mystery", title: "Mystery" },
+        { id: "One shot", title: "One shot" },
+        { id: "Psychological", title: "Psychological" },
+        { id: "Romance", title: "Romance" },
+        { id: "School life", title: "School life" },
+        { id: "Sci fi", title: "Sci fi" },
+        { id: "Seinen", title: "Seinen" },
+        { id: "Shoujo", title: "Shoujo" },
+        { id: "Shounen", title: "Shounen" },
+        { id: "Slice of life", title: "Slice of life" },
+        { id: "Sports", title: "Sports" },
+        { id: "Supernatural", title: "Supernatural" },
+        { id: "Tragedy", title: "Tragedy" },
+        { id: "Webtoons", title: "Webtoons" },
+        { id: "ladies", title: "ladies" }
+      ]
+    }
+  ];
+
   // src/Mgeko/MgekoParser.ts
   init_buffer();
   var import_types2 = __toESM(require_lib(), 1);
@@ -16710,18 +16788,6 @@ var source = (() => {
     }
     return manga;
   };
-  var parseGenreTags = ($2) => {
-    const arrayTags = [];
-    for (const tag of $2(".genre-select-i label").toArray()) {
-      const title = $2(tag).attr("for") ?? "";
-      if (!title) continue;
-      arrayTags.push({ id: title, title });
-    }
-    const tagSections = [
-      { id: "genres", title: "genres", tags: arrayTags }
-    ];
-    return tagSections;
-  };
   var parseSearch = ($2, baseUrl) => {
     const mangas = [];
     for (const obj of $2("li.novel-item", "ul.novel-list").toArray()) {
@@ -16796,8 +16862,7 @@ var source = (() => {
         value: "Views",
         title: "Sort By Filter"
       });
-      const searchTags = await this.getGenreTags();
-      for (const tags of searchTags) {
+      for (const tags of genre_tags_default) {
         Application.registerSearchFilter({
           type: "multiselect",
           options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
@@ -16857,14 +16922,6 @@ var source = (() => {
           this.cookieStorageInterceptor.setCookie(cookie);
         }
       }
-    }
-    async getGenreTags() {
-      const request = {
-        url: new URLBuilder(MGEKO_DOMAIN).addPath("browse-comics").build(),
-        method: "GET"
-      };
-      const $2 = await this.fetchCheerio(request);
-      return parseGenreTags($2);
     }
     async getMangaDetails(mangaId) {
       const request = {
@@ -16967,7 +17024,7 @@ var source = (() => {
       return pagedResults;
     }
     async getGenreSectionItems() {
-      const genres = (await this.getGenreTags())[0];
+      const genres = genre_tags_default[0];
       return {
         items: genres.tags.map((genre) => ({
           type: "genresCarouselItem",
