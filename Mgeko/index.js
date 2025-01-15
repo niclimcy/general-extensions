@@ -16577,7 +16577,7 @@ var source = (() => {
   // src/Mgeko/MgekoParser.ts
   init_buffer();
   var import_types2 = __toESM(require_lib(), 1);
-  var parseMangaDetails = ($2, mangaId) => {
+  var parseMangaDetails = ($2, mangaId, sourceUrl) => {
     const primaryTitle = $2(".novel-title").text().trim();
     const secondaryTitles = [];
     secondaryTitles.push(
@@ -16627,7 +16627,8 @@ var source = (() => {
         contentRating: import_types2.ContentRating.MATURE,
         status,
         author,
-        tagGroups: tagSections
+        tagGroups: tagSections,
+        shareUrl: new URLBuilder(sourceUrl).addPath("manga").addPath(mangaId).build()
       }
     };
   };
@@ -16867,11 +16868,11 @@ var source = (() => {
     }
     async getMangaDetails(mangaId) {
       const request = {
-        url: `${MGEKO_DOMAIN}/manga/${mangaId}`,
+        url: new URLBuilder(MGEKO_DOMAIN).addPath("manga").addPath(mangaId).build(),
         method: "GET"
       };
       const $2 = await this.fetchCheerio(request);
-      return parseMangaDetails($2, mangaId);
+      return parseMangaDetails($2, mangaId, MGEKO_DOMAIN);
     }
     async getChapters(sourceManga) {
       const request = {

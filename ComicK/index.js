@@ -2813,7 +2813,7 @@ var source = (() => {
   }
 
   // src/ComicK/ComicKParser.ts
-  var parseMangaDetails = (data, mangaId) => {
+  var parseMangaDetails = (data, mangaId, apiUrl) => {
     const { comic, authors, artists } = data;
     const titles = [
       comic.title,
@@ -2849,7 +2849,8 @@ var source = (() => {
       status: parseComicStatus(comic.status),
       author: authors.map((author) => author.name).join(","),
       artist: artists.map((artists2) => artists2.name).join(","),
-      tagGroups: tagSections
+      tagGroups: tagSections,
+      shareUrl: new URLBuilder2(apiUrl).addPath("comic").addPath(mangaId).addQuery("tachiyomi", true).build()
     };
     return {
       mangaId,
@@ -3514,7 +3515,7 @@ var source = (() => {
         method: "GET"
       };
       const parsedData = await this.fetchApi(request);
-      return parseMangaDetails(parsedData, mangaId);
+      return parseMangaDetails(parsedData, mangaId, COMICK_API);
     }
     async getChapters(sourceManga, sinceDate) {
       const chapterFilter = this.getChapterFilter();
