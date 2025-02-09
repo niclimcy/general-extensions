@@ -180,9 +180,7 @@ export class ComicKExtension implements ComicKImplementation {
     let limit = 100000;
 
     // Try to update chapter metadata too
-    const newSourceManga = await this.getMangaDetails(sourceManga.mangaId);
-    const { mangaId: _, ...newMetadata } = newSourceManga;
-    Object.assign(sourceManga, newMetadata);
+    Object.assign(sourceManga, await this.getMangaDetails(sourceManga.mangaId));
 
     // Set to default fetch limit for faster chapter refresh
     if (sinceDate) {
