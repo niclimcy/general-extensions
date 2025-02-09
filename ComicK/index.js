@@ -3467,9 +3467,7 @@ var source = (() => {
       const chapterFilter = this.getChapterFilter();
       const chapters = [];
       let limit = 1e5;
-      const newSourceManga = await this.getMangaDetails(sourceManga.mangaId);
-      const { mangaId: _, ...newMetadata } = newSourceManga;
-      Object.assign(sourceManga, newMetadata);
+      Object.assign(sourceManga, await this.getMangaDetails(sourceManga.mangaId));
       if (sinceDate) {
         limit = LIMIT;
       }

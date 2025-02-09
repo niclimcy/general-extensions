@@ -16850,9 +16850,7 @@ var source = (() => {
       return parseMangaDetails($2, mangaId, MGEKO_DOMAIN);
     }
     async getChapters(sourceManga) {
-      const newSourceManga = await this.getMangaDetails(sourceManga.mangaId);
-      const { mangaId: _, ...newMetadata } = newSourceManga;
-      Object.assign(sourceManga, newMetadata);
+      Object.assign(sourceManga, await this.getMangaDetails(sourceManga.mangaId));
       const request = {
         url: new URLBuilder(MGEKO_DOMAIN).addPath("manga").addPath(sourceManga.mangaId).addPath("all-chapters").build(),
         method: "GET"
