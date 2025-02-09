@@ -16593,7 +16593,7 @@ var source = (() => {
     const author = $2("span", "div.author").next().text().trim();
     const description = Application.decodeHTMLEntities(
       $2(".description").first().text().trim()
-    );
+    ).split("The Summary is");
     const arrayTags = [];
     for (const tag of $2("li", "div.categories").toArray()) {
       const title = $2(tag).text().trim();
@@ -16621,7 +16621,7 @@ var source = (() => {
       mangaId,
       mangaInfo: {
         thumbnailUrl: image,
-        synopsis: description,
+        synopsis: description[1] ? description[1] : description.join(""),
         primaryTitle,
         secondaryTitles,
         contentRating: import_types2.ContentRating.MATURE,
@@ -16850,6 +16850,9 @@ var source = (() => {
       return parseMangaDetails($2, mangaId, MGEKO_DOMAIN);
     }
     async getChapters(sourceManga) {
+      const newSourceManga = await this.getMangaDetails(sourceManga.mangaId);
+      const { mangaId: _, ...newMetadata } = newSourceManga;
+      Object.assign(sourceManga, newMetadata);
       const request = {
         url: new URLBuilder(MGEKO_DOMAIN).addPath("manga").addPath(sourceManga.mangaId).addPath("all-chapters").build(),
         method: "GET"
