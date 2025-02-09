@@ -16628,7 +16628,10 @@ var source = (() => {
         status,
         author,
         tagGroups: tagSections,
-        shareUrl: new URLBuilder(sourceUrl).addPath("manga").addPath(mangaId).build()
+        shareUrl: new URLBuilder(sourceUrl).addPath("manga").addPath(mangaId).build(),
+        additionalInfo: {
+          lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+        }
       }
     };
   };
@@ -16850,7 +16853,22 @@ var source = (() => {
       return parseMangaDetails($2, mangaId, MGEKO_DOMAIN);
     }
     async getChapters(sourceManga) {
-      Object.assign(sourceManga, await this.getMangaDetails(sourceManga.mangaId));
+      if (sourceManga.mangaInfo.additionalInfo?.lastUpdated) {
+        const lastUpdated = new Date(
+          sourceManga.mangaInfo.additionalInfo.lastUpdated
+        );
+        if (Date.now() - lastUpdated.getTime() > 7 * 24 * 60 * 60 * 1e3) {
+          Object.assign(
+            sourceManga,
+            await this.getMangaDetails(sourceManga.mangaId)
+          );
+        }
+      } else {
+        Object.assign(
+          sourceManga,
+          await this.getMangaDetails(sourceManga.mangaId)
+        );
+      }
       const request = {
         url: new URLBuilder(MGEKO_DOMAIN).addPath("manga").addPath(sourceManga.mangaId).addPath("all-chapters").build(),
         method: "GET"

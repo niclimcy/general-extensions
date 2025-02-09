@@ -2850,7 +2850,10 @@ var source = (() => {
       author: authors.map((author) => author.name).join(","),
       artist: artists.map((artists2) => artists2.name).join(","),
       tagGroups: tagSections,
-      shareUrl: new URLBuilder2(apiUrl).addPath("comic").addPath(mangaId).addQuery("tachiyomi", true).build()
+      shareUrl: new URLBuilder2(apiUrl).addPath("comic").addPath(mangaId).addQuery("tachiyomi", true).build(),
+      additionalInfo: {
+        lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+      }
     };
     return {
       mangaId,
@@ -3467,7 +3470,22 @@ var source = (() => {
       const chapterFilter = this.getChapterFilter();
       const chapters = [];
       let limit = 1e5;
-      Object.assign(sourceManga, await this.getMangaDetails(sourceManga.mangaId));
+      if (sourceManga.mangaInfo.additionalInfo?.lastUpdated) {
+        const lastUpdated = new Date(
+          sourceManga.mangaInfo.additionalInfo.lastUpdated
+        );
+        if (Date.now() - lastUpdated.getTime() > 7 * 24 * 60 * 60 * 1e3) {
+          Object.assign(
+            sourceManga,
+            await this.getMangaDetails(sourceManga.mangaId)
+          );
+        }
+      } else {
+        Object.assign(
+          sourceManga,
+          await this.getMangaDetails(sourceManga.mangaId)
+        );
+      }
       if (sinceDate) {
         limit = LIMIT;
       }
