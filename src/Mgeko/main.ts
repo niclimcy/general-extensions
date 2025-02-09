@@ -167,6 +167,11 @@ export class MgekoExtension implements MgekoImplementation {
   }
 
   async getChapters(sourceManga: SourceManga): Promise<Chapter[]> {
+    // Try to update chapter metadata too
+    const newSourceManga = await this.getMangaDetails(sourceManga.mangaId);
+    const { mangaId: _, ...newMetadata } = newSourceManga;
+    Object.assign(sourceManga, newMetadata);
+
     const request: Request = {
       url: new URLBuilder(MGEKO_DOMAIN)
         .addPath("manga")
