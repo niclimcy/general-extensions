@@ -167,8 +167,24 @@ export class MgekoExtension implements MgekoImplementation {
   }
 
   async getChapters(sourceManga: SourceManga): Promise<Chapter[]> {
-    // Try to update chapter metadata too
-    Object.assign(sourceManga, await this.getMangaDetails(sourceManga.mangaId));
+    // Update sourceManga metadata every week
+    if (sourceManga.mangaInfo.additionalInfo?.lastUpdated) {
+      const lastUpdated = new Date(
+        sourceManga.mangaInfo.additionalInfo.lastUpdated,
+      );
+      if (Date.now() - lastUpdated.getTime() > 7 * 24 * 60 * 60 * 1000) {
+        Object.assign(
+          sourceManga,
+          await this.getMangaDetails(sourceManga.mangaId),
+        );
+      }
+    } else {
+      // Handle case where lastUpdated is nil
+      Object.assign(
+        sourceManga,
+        await this.getMangaDetails(sourceManga.mangaId),
+      );
+    }
 
     const request: Request = {
       url: new URLBuilder(MGEKO_DOMAIN)

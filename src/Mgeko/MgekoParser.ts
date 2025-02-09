@@ -84,6 +84,9 @@ export const parseMangaDetails = (
         .addPath("manga")
         .addPath(mangaId)
         .build(),
+      additionalInfo: {
+        lastUpdated: new Date().toISOString(),
+      },
     } as MangaInfo,
   } as SourceManga;
 };

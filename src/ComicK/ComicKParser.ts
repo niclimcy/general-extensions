@@ -65,6 +65,9 @@ export const parseMangaDetails = (
       .addPath(mangaId)
       .addQuery("tachiyomi", true)
       .build(),
+    additionalInfo: {
+      lastUpdated: new Date().toISOString(),
+    },
   };
 
   return {
