@@ -16784,19 +16784,6 @@ var source = (() => {
       this.globalRateLimiter.registerInterceptor();
       this.mainRequestInterceptor.registerInterceptor();
       this.cookieStorageInterceptor.registerInterceptor();
-      Application.registerSearchFilter({
-        id: "sortBy",
-        type: "dropdown",
-        options: [
-          { id: "Random", value: "Random" },
-          { id: "New", value: "New" },
-          { id: "Updated", value: "Updated" },
-          { id: "Views", value: "Views" }
-        ],
-        value: "Views",
-        title: "Sort By Filter"
-      });
-      void this.registerGenreTags();
     }
     async getDiscoverSections() {
       return [
@@ -16854,21 +16841,6 @@ var source = (() => {
       const $2 = await this.fetchCheerio(request);
       return parseGenreTags($2);
     }
-    async registerGenreTags() {
-      const searchTags = await this.getGenreTags();
-      for (const tags of searchTags) {
-        Application.registerSearchFilter({
-          type: "multiselect",
-          options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
-          id: tags.id,
-          allowExclusion: true,
-          title: tags.title,
-          value: {},
-          allowEmptySelection: true,
-          maximum: void 0
-        });
-      }
-    }
     async getMangaDetails(mangaId) {
       const request = {
         url: new URLBuilder(MGEKO_DOMAIN).addPath("manga").addPath(mangaId).build(),
@@ -16920,6 +16892,35 @@ var source = (() => {
         metadata
       };
       return pagedResults;
+    }
+    async getSearchFilters() {
+      const filters2 = [];
+      const searchTags = await this.getGenreTags();
+      for (const tags of searchTags) {
+        filters2.push({
+          type: "multiselect",
+          options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
+          id: tags.id,
+          allowExclusion: true,
+          title: tags.title,
+          value: {},
+          allowEmptySelection: true,
+          maximum: void 0
+        });
+      }
+      filters2.push({
+        id: "sortBy",
+        type: "dropdown",
+        options: [
+          { id: "Random", value: "Random" },
+          { id: "New", value: "New" },
+          { id: "Updated", value: "Updated" },
+          { id: "Views", value: "Views" }
+        ],
+        value: "Views",
+        title: "Sort By Filter"
+      });
+      return filters2;
     }
     async getMostViewedSectionItems(metadata) {
       if (metadata?.completed) return import_types3.EndOfPageResults;
