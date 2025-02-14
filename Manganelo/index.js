@@ -2358,6 +2358,105 @@ var source = (() => {
     }
   });
 
+  // node_modules/@paperback/types/lib/impl/AutoUpdatingSourceMangaWrapper.js
+  var require_AutoUpdatingSourceMangaWrapper = __commonJS({
+    "node_modules/@paperback/types/lib/impl/AutoUpdatingSourceMangaWrapper.js"(exports) {
+      "use strict";
+      init_buffer();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.AutoUpdatingSourceMangaWrapper = AutoUpdatingSourceMangaWrapper;
+      function AutoUpdatingSourceMangaWrapper(target, config = {
+        interval: 7 * 24 * 60 * 60 * 1e3
+      }) {
+        return new Proxy(target, {
+          get(target2, property, _) {
+            switch (property) {
+              case "getMangaDetails": {
+                return async function(mangaId) {
+                  const sourceManga = await this.getMangaDetails(mangaId);
+                  sourceManga.mangaInfo.additionalInfo = {
+                    ...sourceManga.mangaInfo.additionalInfo ?? {},
+                    lastUpdated: (/* @__PURE__ */ new Date()).toJSON()
+                  };
+                  return sourceManga;
+                }.bind(target2);
+              }
+              case "getChapters": {
+                return async function(sourceManga, sinceDate) {
+                  const lastUpdated = new Date(sourceManga.mangaInfo.additionalInfo?.lastUpdated ?? "1970-01-01T00:00:00.000Z");
+                  if (Date.now() - lastUpdated.getTime() > config.interval) {
+                    const { mangaId: _2, ...partialSourceManga } = await this.getMangaDetails(sourceManga.mangaId);
+                    Object.assign(sourceManga, partialSourceManga);
+                    sourceManga.mangaInfo.additionalInfo = {
+                      ...sourceManga.mangaInfo.additionalInfo ?? {},
+                      lastUpdated: (/* @__PURE__ */ new Date()).toJSON()
+                    };
+                  }
+                  return this.getChapters(sourceManga, sinceDate);
+                }.bind(target2);
+              }
+              default: {
+                return target2[property];
+              }
+            }
+          }
+        });
+      }
+    }
+  });
+
+  // node_modules/@paperback/types/lib/impl/FormState.js
+  var require_FormState = __commonJS({
+    "node_modules/@paperback/types/lib/impl/FormState.js"(exports) {
+      "use strict";
+      init_buffer();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.createFormState = createFormState;
+      var FormState = class {
+        form;
+        _value;
+        _selector;
+        /**
+         * Creates a new FormState instance.
+         * @param {Form} form - The parent form instance
+         * @param {T} initialValue - The initial value of the form field
+         */
+        constructor(form, initialValue) {
+          this.form = form;
+          this._value = initialValue;
+          this._selector = Application.Selector(this, "updateValue");
+        }
+        /**
+         * Gets the current value of the form field.
+         * @returns {T} The current value
+         */
+        get value() {
+          return this._value;
+        }
+        /**
+         * Gets the selector ID for the update function.
+         * @returns {SelectorID<(value: T) => Promise<void>>} The selector ID
+         */
+        get selector() {
+          return this._selector;
+        }
+        /**
+         * Updates the form field value and triggers a form reload.
+         * @param {T} value - The new value to set
+         * @returns {Promise<void>} A promise that resolves when the update is complete
+         */
+        async updateValue(value) {
+          this._value = value;
+          this.form.reloadForm();
+        }
+      };
+      function createFormState(form, initialValue) {
+        const state = new FormState(form, initialValue);
+        return [() => state.value, state.updateValue.bind(state), state.selector];
+      }
+    }
+  });
+
   // node_modules/@paperback/types/lib/impl/index.js
   var require_impl = __commonJS({
     "node_modules/@paperback/types/lib/impl/index.js"(exports) {
@@ -2389,6 +2488,8 @@ var source = (() => {
       __exportStar(require_BasicRateLimiter(), exports);
       __exportStar(require_CloudflareError(), exports);
       __exportStar(require_CookieStorageInterceptor(), exports);
+      __exportStar(require_AutoUpdatingSourceMangaWrapper(), exports);
+      __exportStar(require_FormState(), exports);
     }
   });
 
@@ -16597,7 +16698,46 @@ var source = (() => {
     requestManager = new NeloInterceptor("main");
     async initialise() {
       this.requestManager.registerInterceptor();
-      Application.registerSearchFilter({
+    }
+    async getDiscoverSections() {
+      return [
+        {
+          id: "popular_section",
+          title: "Popular",
+          type: import_types3.DiscoverSectionType.featured
+        },
+        {
+          id: "updated_section",
+          title: "Recently Updated",
+          type: import_types3.DiscoverSectionType.simpleCarousel
+        },
+        {
+          id: "new_manga_section",
+          title: "New Manga",
+          type: import_types3.DiscoverSectionType.simpleCarousel
+        },
+        { id: "genres", title: "Genres", type: import_types3.DiscoverSectionType.genres }
+      ];
+    }
+    async getDiscoverSectionItems(section, metadata) {
+      switch (section.id) {
+        // case "featured_section":
+        //   return this.getFeaturedSectionItems(section, metadata);
+        case "popular_section":
+          return this.getPopularSectionItems(section, metadata);
+        case "updated_section":
+          return this.getUpdatedSectionItems(section, metadata);
+        case "new_manga_section":
+          return this.getNewMangaSectionItems(section, metadata);
+        case "genres":
+          return this.getGenreSectionItems(section, metadata);
+        default:
+          return { items: [] };
+      }
+    }
+    async getSearchFilters() {
+      const filters2 = [];
+      filters2.push({
         id: "sortBy",
         type: "dropdown",
         options: [
@@ -16608,7 +16748,7 @@ var source = (() => {
         value: "relevance",
         title: "Sort By Filter"
       });
-      Application.registerSearchFilter({
+      filters2.push({
         id: "genres",
         type: "multiselect",
         options: [
@@ -16661,7 +16801,7 @@ var source = (() => {
         allowEmptySelection: false,
         maximum: void 0
       });
-      Application.registerSearchFilter({
+      filters2.push({
         id: "status",
         type: "dropdown",
         options: [
@@ -16672,46 +16812,7 @@ var source = (() => {
         value: "all",
         title: "Status Filter"
       });
-    }
-    async getDiscoverSections() {
-      return [
-        {
-          id: "popular_section",
-          title: "Popular",
-          type: import_types3.DiscoverSectionType.featured
-        },
-        {
-          id: "updated_section",
-          title: "Recently Updated",
-          type: import_types3.DiscoverSectionType.simpleCarousel
-        },
-        {
-          id: "new_manga_section",
-          title: "New Manga",
-          type: import_types3.DiscoverSectionType.simpleCarousel
-        },
-        {
-          id: "genres",
-          title: "Genres",
-          type: import_types3.DiscoverSectionType.genres
-        }
-      ];
-    }
-    async getDiscoverSectionItems(section, metadata) {
-      switch (section.id) {
-        // case "featured_section":
-        //   return this.getFeaturedSectionItems(section, metadata);
-        case "popular_section":
-          return this.getPopularSectionItems(section, metadata);
-        case "updated_section":
-          return this.getUpdatedSectionItems(section, metadata);
-        case "new_manga_section":
-          return this.getNewMangaSectionItems(section, metadata);
-        case "genres":
-          return this.getGenreSectionItems(section, metadata);
-        default:
-          return { items: [] };
-      }
+      return filters2;
     }
     async getSearchResults(query, metadata) {
       const page = metadata?.page ?? 1;
@@ -16746,10 +16847,7 @@ var source = (() => {
       } else if (status === "ongoing") {
         searchUrl.addQuery("sts", "ongoing");
       }
-      const request = {
-        url: searchUrl.build(),
-        method: "GET"
-      };
+      const request = { url: searchUrl.build(), method: "GET" };
       const $2 = await this.fetchCheerio(request);
       const searchResults = [];
       $2(".content-genres-item").each((_, element) => {
@@ -16775,10 +16873,7 @@ var source = (() => {
       };
     }
     async getMangaDetails(mangaId) {
-      const request = {
-        url: `${mangaId}`,
-        method: "GET"
-      };
+      const request = { url: `${mangaId}`, method: "GET" };
       const $2 = await this.fetchCheerio(request);
       const title = $2(".story-info-right h1").text().trim();
       const altTitles = $2(".variations-tableInfo .table-value h2").first().text().trim().split(";").map((t) => t.trim());
@@ -16822,10 +16917,7 @@ var source = (() => {
       };
     }
     async getChapters(sourceManga) {
-      const request = {
-        url: `${sourceManga.mangaId}`,
-        method: "GET"
-      };
+      const request = { url: `${sourceManga.mangaId}`, method: "GET" };
       const $2 = await this.fetchCheerio(request);
       const chapters = [];
       $2(".a-h").each((_, element) => {
@@ -16849,10 +16941,7 @@ var source = (() => {
     }
     async getChapterDetails(chapter) {
       try {
-        const request = {
-          url: `${chapter.chapterId}`,
-          method: "GET"
-        };
+        const request = { url: `${chapter.chapterId}`, method: "GET" };
         const $2 = await this.fetchCheerio(request);
         const pages = [];
         $2(".container-chapter-reader img").each((_, img) => {
@@ -17043,12 +17132,7 @@ var source = (() => {
           type: "genresCarouselItem",
           searchQuery: {
             title: "",
-            filters: [
-              {
-                id: "genres",
-                value: { [item.id]: "included" }
-              }
-            ]
+            filters: [{ id: "genres", value: { [item.id]: "included" } }]
           },
           name: item.name,
           metadata: metadata ? { page: metadata.page } : void 0

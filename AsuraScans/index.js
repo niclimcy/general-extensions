@@ -2358,6 +2358,105 @@ var source = (() => {
     }
   });
 
+  // node_modules/@paperback/types/lib/impl/AutoUpdatingSourceMangaWrapper.js
+  var require_AutoUpdatingSourceMangaWrapper = __commonJS({
+    "node_modules/@paperback/types/lib/impl/AutoUpdatingSourceMangaWrapper.js"(exports) {
+      "use strict";
+      init_buffer();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.AutoUpdatingSourceMangaWrapper = AutoUpdatingSourceMangaWrapper;
+      function AutoUpdatingSourceMangaWrapper(target, config = {
+        interval: 7 * 24 * 60 * 60 * 1e3
+      }) {
+        return new Proxy(target, {
+          get(target2, property, _) {
+            switch (property) {
+              case "getMangaDetails": {
+                return async function(mangaId) {
+                  const sourceManga = await this.getMangaDetails(mangaId);
+                  sourceManga.mangaInfo.additionalInfo = {
+                    ...sourceManga.mangaInfo.additionalInfo ?? {},
+                    lastUpdated: (/* @__PURE__ */ new Date()).toJSON()
+                  };
+                  return sourceManga;
+                }.bind(target2);
+              }
+              case "getChapters": {
+                return async function(sourceManga, sinceDate) {
+                  const lastUpdated = new Date(sourceManga.mangaInfo.additionalInfo?.lastUpdated ?? "1970-01-01T00:00:00.000Z");
+                  if (Date.now() - lastUpdated.getTime() > config.interval) {
+                    const { mangaId: _2, ...partialSourceManga } = await this.getMangaDetails(sourceManga.mangaId);
+                    Object.assign(sourceManga, partialSourceManga);
+                    sourceManga.mangaInfo.additionalInfo = {
+                      ...sourceManga.mangaInfo.additionalInfo ?? {},
+                      lastUpdated: (/* @__PURE__ */ new Date()).toJSON()
+                    };
+                  }
+                  return this.getChapters(sourceManga, sinceDate);
+                }.bind(target2);
+              }
+              default: {
+                return target2[property];
+              }
+            }
+          }
+        });
+      }
+    }
+  });
+
+  // node_modules/@paperback/types/lib/impl/FormState.js
+  var require_FormState = __commonJS({
+    "node_modules/@paperback/types/lib/impl/FormState.js"(exports) {
+      "use strict";
+      init_buffer();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.createFormState = createFormState;
+      var FormState = class {
+        form;
+        _value;
+        _selector;
+        /**
+         * Creates a new FormState instance.
+         * @param {Form} form - The parent form instance
+         * @param {T} initialValue - The initial value of the form field
+         */
+        constructor(form, initialValue) {
+          this.form = form;
+          this._value = initialValue;
+          this._selector = Application.Selector(this, "updateValue");
+        }
+        /**
+         * Gets the current value of the form field.
+         * @returns {T} The current value
+         */
+        get value() {
+          return this._value;
+        }
+        /**
+         * Gets the selector ID for the update function.
+         * @returns {SelectorID<(value: T) => Promise<void>>} The selector ID
+         */
+        get selector() {
+          return this._selector;
+        }
+        /**
+         * Updates the form field value and triggers a form reload.
+         * @param {T} value - The new value to set
+         * @returns {Promise<void>} A promise that resolves when the update is complete
+         */
+        async updateValue(value) {
+          this._value = value;
+          this.form.reloadForm();
+        }
+      };
+      function createFormState(form, initialValue) {
+        const state = new FormState(form, initialValue);
+        return [() => state.value, state.updateValue.bind(state), state.selector];
+      }
+    }
+  });
+
   // node_modules/@paperback/types/lib/impl/index.js
   var require_impl = __commonJS({
     "node_modules/@paperback/types/lib/impl/index.js"(exports) {
@@ -2389,6 +2488,8 @@ var source = (() => {
       __exportStar(require_BasicRateLimiter(), exports);
       __exportStar(require_CloudflareError(), exports);
       __exportStar(require_CookieStorageInterceptor(), exports);
+      __exportStar(require_AutoUpdatingSourceMangaWrapper(), exports);
+      __exportStar(require_FormState(), exports);
     }
   });
 
@@ -16927,26 +17028,10 @@ var source = (() => {
       this.globalRateLimiter.registerInterceptor();
       this.requestManager.registerInterceptor();
       if (Application.isResourceLimited) return;
-      for (const tags of await this.getSearchTags()) {
-        Application.registerSearchFilter({
-          type: "multiselect",
-          options: tags.tags.map((x) => ({ id: x.id, value: x.title })),
-          id: tags.id,
-          allowExclusion: false,
-          title: tags.title,
-          value: {},
-          allowEmptySelection: true,
-          maximum: void 0
-        });
-      }
     }
     async getDiscoverSections() {
       return [
-        {
-          id: "featured",
-          title: "Featured",
-          type: import_types5.DiscoverSectionType.featured
-        },
+        { id: "featured", title: "Featured", type: import_types5.DiscoverSectionType.featured },
         {
           id: "latest_updates",
           title: "Latest Updates",
@@ -16958,21 +17043,9 @@ var source = (() => {
           title: "Popular Today",
           type: import_types5.DiscoverSectionType.chapterUpdates
         },
-        {
-          id: "type",
-          title: "Types",
-          type: import_types5.DiscoverSectionType.genres
-        },
-        {
-          id: "genres",
-          title: "Genres",
-          type: import_types5.DiscoverSectionType.genres
-        },
-        {
-          id: "status",
-          title: "Status",
-          type: import_types5.DiscoverSectionType.genres
-        }
+        { id: "type", title: "Types", type: import_types5.DiscoverSectionType.genres },
+        { id: "genres", title: "Genres", type: import_types5.DiscoverSectionType.genres },
+        { id: "status", title: "Status", type: import_types5.DiscoverSectionType.genres }
       ];
     }
     async getDiscoverSectionItems(section, metadata) {
@@ -17021,14 +17094,7 @@ var source = (() => {
                 type: "genresCarouselItem",
                 searchQuery: {
                   title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
+                  filters: [{ id: tag.id, value: { [tag.id]: "included" } }]
                 },
                 name: tag.title,
                 metadata
@@ -17043,14 +17109,7 @@ var source = (() => {
                 type: "genresCarouselItem",
                 searchQuery: {
                   title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
+                  filters: [{ id: tag.id, value: { [tag.id]: "included" } }]
                 },
                 name: tag.title,
                 metadata
@@ -17065,14 +17124,7 @@ var source = (() => {
                 type: "genresCarouselItem",
                 searchQuery: {
                   title: tag.title,
-                  filters: [
-                    {
-                      id: tag.id,
-                      value: {
-                        [tag.id]: "included"
-                      }
-                    }
-                  ]
+                  filters: [{ id: tag.id, value: { [tag.id]: "included" } }]
                 },
                 name: tag.title,
                 metadata
@@ -17108,10 +17160,7 @@ var source = (() => {
     }
     async getChapterDetails(chapter) {
       const url = new URLBuilder2(AS_DOMAIN).addPath("series").addPath(chapter.sourceManga.mangaId).addPath("chapter").addPath(chapter.chapterId).build();
-      const request = {
-        url,
-        method: "GET"
-      };
+      const request = { url, method: "GET" };
       const [, buffer] = await Application.scheduleRequest(request);
       const $2 = load(Application.arrayBufferToUTF8String(buffer));
       const scripts = $2("script").toArray().filter((script) => $2(script).text().includes("self.__next_f.push")).map((script) => $2(script).text()).join("");
@@ -17173,6 +17222,19 @@ var source = (() => {
     async supportsTagExclusion() {
       return false;
     }
+    async getSearchFilters() {
+      const tags = await this.getSearchTags();
+      return tags.map((tag) => ({
+        id: tag.id,
+        title: tag.title,
+        type: "multiselect",
+        options: tag.tags.map((x) => ({ id: x.id, value: x.title })),
+        allowExclusion: false,
+        value: {},
+        allowEmptySelection: true,
+        maximum: void 0
+      }));
+    }
     async getSearchResults(query, metadata) {
       const page = metadata?.page ?? 1;
       let newUrlBuilder = new URLBuilder2(AS_DOMAIN).addPath("series").addQuery("page", page.toString());
@@ -17197,10 +17259,7 @@ var source = (() => {
       const $2 = load(Application.arrayBufferToUTF8String(response[1]));
       const items = await parseSearch($2);
       metadata = !isLastPage($2) ? { page: page + 1 } : void 0;
-      return {
-        items,
-        metadata
-      };
+      return { items, metadata };
     }
   };
   var AsuraScans = new AsuraScansExtension();

@@ -2358,6 +2358,105 @@ var source = (() => {
     }
   });
 
+  // node_modules/@paperback/types/lib/impl/AutoUpdatingSourceMangaWrapper.js
+  var require_AutoUpdatingSourceMangaWrapper = __commonJS({
+    "node_modules/@paperback/types/lib/impl/AutoUpdatingSourceMangaWrapper.js"(exports) {
+      "use strict";
+      init_buffer();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.AutoUpdatingSourceMangaWrapper = AutoUpdatingSourceMangaWrapper;
+      function AutoUpdatingSourceMangaWrapper(target, config = {
+        interval: 7 * 24 * 60 * 60 * 1e3
+      }) {
+        return new Proxy(target, {
+          get(target2, property, _) {
+            switch (property) {
+              case "getMangaDetails": {
+                return async function(mangaId) {
+                  const sourceManga = await this.getMangaDetails(mangaId);
+                  sourceManga.mangaInfo.additionalInfo = {
+                    ...sourceManga.mangaInfo.additionalInfo ?? {},
+                    lastUpdated: (/* @__PURE__ */ new Date()).toJSON()
+                  };
+                  return sourceManga;
+                }.bind(target2);
+              }
+              case "getChapters": {
+                return async function(sourceManga, sinceDate) {
+                  const lastUpdated = new Date(sourceManga.mangaInfo.additionalInfo?.lastUpdated ?? "1970-01-01T00:00:00.000Z");
+                  if (Date.now() - lastUpdated.getTime() > config.interval) {
+                    const { mangaId: _2, ...partialSourceManga } = await this.getMangaDetails(sourceManga.mangaId);
+                    Object.assign(sourceManga, partialSourceManga);
+                    sourceManga.mangaInfo.additionalInfo = {
+                      ...sourceManga.mangaInfo.additionalInfo ?? {},
+                      lastUpdated: (/* @__PURE__ */ new Date()).toJSON()
+                    };
+                  }
+                  return this.getChapters(sourceManga, sinceDate);
+                }.bind(target2);
+              }
+              default: {
+                return target2[property];
+              }
+            }
+          }
+        });
+      }
+    }
+  });
+
+  // node_modules/@paperback/types/lib/impl/FormState.js
+  var require_FormState = __commonJS({
+    "node_modules/@paperback/types/lib/impl/FormState.js"(exports) {
+      "use strict";
+      init_buffer();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.createFormState = createFormState;
+      var FormState = class {
+        form;
+        _value;
+        _selector;
+        /**
+         * Creates a new FormState instance.
+         * @param {Form} form - The parent form instance
+         * @param {T} initialValue - The initial value of the form field
+         */
+        constructor(form, initialValue) {
+          this.form = form;
+          this._value = initialValue;
+          this._selector = Application.Selector(this, "updateValue");
+        }
+        /**
+         * Gets the current value of the form field.
+         * @returns {T} The current value
+         */
+        get value() {
+          return this._value;
+        }
+        /**
+         * Gets the selector ID for the update function.
+         * @returns {SelectorID<(value: T) => Promise<void>>} The selector ID
+         */
+        get selector() {
+          return this._selector;
+        }
+        /**
+         * Updates the form field value and triggers a form reload.
+         * @param {T} value - The new value to set
+         * @returns {Promise<void>} A promise that resolves when the update is complete
+         */
+        async updateValue(value) {
+          this._value = value;
+          this.form.reloadForm();
+        }
+      };
+      function createFormState(form, initialValue) {
+        const state = new FormState(form, initialValue);
+        return [() => state.value, state.updateValue.bind(state), state.selector];
+      }
+    }
+  });
+
   // node_modules/@paperback/types/lib/impl/index.js
   var require_impl = __commonJS({
     "node_modules/@paperback/types/lib/impl/index.js"(exports) {
@@ -2389,6 +2488,8 @@ var source = (() => {
       __exportStar(require_BasicRateLimiter(), exports);
       __exportStar(require_CloudflareError(), exports);
       __exportStar(require_CookieStorageInterceptor(), exports);
+      __exportStar(require_AutoUpdatingSourceMangaWrapper(), exports);
+      __exportStar(require_FormState(), exports);
     }
   });
 
@@ -4532,10 +4633,7 @@ var source = (() => {
   var MangaDexInterceptor = class extends import_types3.PaperbackInterceptor {
     imageRegex = new RegExp(/\.(png|gif|jpeg|jpg|webp)(\?|$)/gi);
     async interceptRequest(request) {
-      request.headers = {
-        ...request.headers,
-        referer: `${MANGADEX_DOMAIN}/`
-      };
+      request.headers = { ...request.headers, referer: `${MANGADEX_DOMAIN}/` };
       let accessToken = getAccessToken();
       if (this.imageRegex.test(request.url) || request.url.includes("auth/") || request.url.includes("auth.mangadex") || !accessToken) {
         return request;
@@ -4545,9 +4643,7 @@ var source = (() => {
           const [_, buffer] = await Application.scheduleRequest({
             url: "https://auth.mangadex.org/realms/mangadex/protocol/openid-connect/token",
             method: "post",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded"
-            },
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: {
               grant_type: "refresh_token",
               refresh_token: accessToken.refreshToken,
@@ -4621,11 +4717,7 @@ var source = (() => {
     }
     async getDiscoverSections() {
       return [
-        {
-          id: "seasonal",
-          title: "Seasonal",
-          type: import_types3.DiscoverSectionType.featured
-        },
+        { id: "seasonal", title: "Seasonal", type: import_types3.DiscoverSectionType.featured },
         {
           id: "latest_updates",
           title: "Latest Updates",
@@ -4687,10 +4779,7 @@ var source = (() => {
             tags: []
           };
         }
-        const tagObject = {
-          id: tag.data.id,
-          title: tag.data.attributes.name.en
-        };
+        const tagObject = { id: tag.data.id, title: tag.data.attributes.name.en };
         sections[group].tags = [...sections[group]?.tags ?? [], tagObject];
       }
       return {
@@ -4726,20 +4815,14 @@ var source = (() => {
             tags: []
           };
         }
-        const tagObject = {
-          id: tag.data.id,
-          title: tag.data.attributes.name.en
-        };
+        const tagObject = { id: tag.data.id, title: tag.data.attributes.name.en };
         sections[group].tags = [...sections[group]?.tags ?? [], tagObject];
       }
       return Object.values(sections);
     }
     // Used for seasonal listing
     async getCustomListRequestURL(listId, ratings) {
-      const request = {
-        url: `${MANGADEX_API}/list/${listId}`,
-        method: "GET"
-      };
+      const request = { url: `${MANGADEX_API}/list/${listId}`, method: "GET" };
       const [_, buffer] = await Application.scheduleRequest(request);
       const data = Application.arrayBufferToUTF8String(buffer);
       const json = typeof data === "string" ? JSON.parse(data) : data;
@@ -4854,11 +4937,44 @@ var source = (() => {
           (x) => `${serverUrl}/data/${chapterDetails.hash}/${x}`
         );
       }
-      return {
-        id: chapterId,
-        mangaId,
-        pages
-      };
+      return { id: chapterId, mangaId, pages };
+    }
+    async getSearchFilters() {
+      const filters = [];
+      filters.push({
+        id: "includeOperator",
+        type: "dropdown",
+        options: [
+          { id: "AND", value: "AND" },
+          { id: "OR", value: "OR" }
+        ],
+        value: "AND",
+        title: "Include Operator"
+      });
+      filters.push({
+        id: "excludeOperator",
+        type: "dropdown",
+        options: [
+          { id: "AND", value: "AND" },
+          { id: "OR", value: "OR" }
+        ],
+        value: "OR",
+        title: "Exclude Operator"
+      });
+      const tags = this.getSearchTags();
+      for (const tag of tags) {
+        filters.push({
+          type: "multiselect",
+          options: tag.tags.map((x) => ({ id: x.id, value: x.title })),
+          id: "tags-" + tag.id,
+          allowExclusion: true,
+          title: tag.title,
+          value: {},
+          allowEmptySelection: true,
+          maximum: void 0
+        });
+      }
+      return filters;
     }
     async getSearchResults(query, metadata) {
       const ratings = getRatings();
@@ -4911,10 +5027,7 @@ var source = (() => {
         getSearchThumbnail
       );
       const nextMetadata = results.length < 100 ? void 0 : { offset: offset + 100 };
-      return {
-        items: results,
-        metadata: nextMetadata
-      };
+      return { items: results, metadata: nextMetadata };
     }
     async getMangaListDiscoverSectionItems(section) {
       const ratings = getRatings();
@@ -4969,10 +5082,7 @@ var source = (() => {
       );
       const nextMetadata = items.length < 100 ? void 0 : { offset: offset + 100, collectedIds };
       return {
-        items: items.map((x) => ({
-          ...x,
-          type: "prominentCarouselItem"
-        })),
+        items: items.map((x) => ({ ...x, type: "prominentCarouselItem" })),
         metadata: nextMetadata
       };
     }
@@ -5051,10 +5161,7 @@ var source = (() => {
       );
       const nextMetadata = items.length < 100 ? void 0 : { offset: offset + 100, collectedIds };
       return {
-        items: items.map((x) => ({
-          ...x,
-          type: "simpleCarouselItem"
-        })),
+        items: items.map((x) => ({ ...x, type: "simpleCarouselItem" })),
         metadata: nextMetadata
       };
     }
@@ -5077,21 +5184,15 @@ var source = (() => {
         await Application.scheduleRequest({
           url: new URLBuilder(MANGADEX_API).addPath("manga").addPath(addition.mangaId).addPath("status").build(),
           method: "post",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: {
-            status: changeset.collection.id
-          }
+          headers: { "Content-Type": "application/json" },
+          body: { status: changeset.collection.id }
         });
       }
       for (const deletion of changeset.deletions) {
         await Application.scheduleRequest({
           url: new URLBuilder(MANGADEX_API).addPath("manga").addPath(deletion.mangaId).addPath("status").build(),
           method: "post",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: null })
         });
       }

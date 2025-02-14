@@ -2358,6 +2358,105 @@ var source = (() => {
     }
   });
 
+  // node_modules/@paperback/types/lib/impl/AutoUpdatingSourceMangaWrapper.js
+  var require_AutoUpdatingSourceMangaWrapper = __commonJS({
+    "node_modules/@paperback/types/lib/impl/AutoUpdatingSourceMangaWrapper.js"(exports) {
+      "use strict";
+      init_buffer();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.AutoUpdatingSourceMangaWrapper = AutoUpdatingSourceMangaWrapper;
+      function AutoUpdatingSourceMangaWrapper(target, config = {
+        interval: 7 * 24 * 60 * 60 * 1e3
+      }) {
+        return new Proxy(target, {
+          get(target2, property, _) {
+            switch (property) {
+              case "getMangaDetails": {
+                return async function(mangaId) {
+                  const sourceManga = await this.getMangaDetails(mangaId);
+                  sourceManga.mangaInfo.additionalInfo = {
+                    ...sourceManga.mangaInfo.additionalInfo ?? {},
+                    lastUpdated: (/* @__PURE__ */ new Date()).toJSON()
+                  };
+                  return sourceManga;
+                }.bind(target2);
+              }
+              case "getChapters": {
+                return async function(sourceManga, sinceDate) {
+                  const lastUpdated = new Date(sourceManga.mangaInfo.additionalInfo?.lastUpdated ?? "1970-01-01T00:00:00.000Z");
+                  if (Date.now() - lastUpdated.getTime() > config.interval) {
+                    const { mangaId: _2, ...partialSourceManga } = await this.getMangaDetails(sourceManga.mangaId);
+                    Object.assign(sourceManga, partialSourceManga);
+                    sourceManga.mangaInfo.additionalInfo = {
+                      ...sourceManga.mangaInfo.additionalInfo ?? {},
+                      lastUpdated: (/* @__PURE__ */ new Date()).toJSON()
+                    };
+                  }
+                  return this.getChapters(sourceManga, sinceDate);
+                }.bind(target2);
+              }
+              default: {
+                return target2[property];
+              }
+            }
+          }
+        });
+      }
+    }
+  });
+
+  // node_modules/@paperback/types/lib/impl/FormState.js
+  var require_FormState = __commonJS({
+    "node_modules/@paperback/types/lib/impl/FormState.js"(exports) {
+      "use strict";
+      init_buffer();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.createFormState = createFormState;
+      var FormState = class {
+        form;
+        _value;
+        _selector;
+        /**
+         * Creates a new FormState instance.
+         * @param {Form} form - The parent form instance
+         * @param {T} initialValue - The initial value of the form field
+         */
+        constructor(form, initialValue) {
+          this.form = form;
+          this._value = initialValue;
+          this._selector = Application.Selector(this, "updateValue");
+        }
+        /**
+         * Gets the current value of the form field.
+         * @returns {T} The current value
+         */
+        get value() {
+          return this._value;
+        }
+        /**
+         * Gets the selector ID for the update function.
+         * @returns {SelectorID<(value: T) => Promise<void>>} The selector ID
+         */
+        get selector() {
+          return this._selector;
+        }
+        /**
+         * Updates the form field value and triggers a form reload.
+         * @param {T} value - The new value to set
+         * @returns {Promise<void>} A promise that resolves when the update is complete
+         */
+        async updateValue(value) {
+          this._value = value;
+          this.form.reloadForm();
+        }
+      };
+      function createFormState(form, initialValue) {
+        const state = new FormState(form, initialValue);
+        return [() => state.value, state.updateValue.bind(state), state.selector];
+      }
+    }
+  });
+
   // node_modules/@paperback/types/lib/impl/index.js
   var require_impl = __commonJS({
     "node_modules/@paperback/types/lib/impl/index.js"(exports) {
@@ -2389,6 +2488,8 @@ var source = (() => {
       __exportStar(require_BasicRateLimiter(), exports);
       __exportStar(require_CloudflareError(), exports);
       __exportStar(require_CookieStorageInterceptor(), exports);
+      __exportStar(require_AutoUpdatingSourceMangaWrapper(), exports);
+      __exportStar(require_FormState(), exports);
     }
   });
 
@@ -16597,7 +16698,50 @@ var source = (() => {
     requestManager = new FireInterceptor("main");
     async initialise() {
       this.requestManager.registerInterceptor();
-      Application.registerSearchFilter({
+    }
+    async getDiscoverSections() {
+      return [
+        {
+          id: "popular_section",
+          title: "Popular",
+          type: import_types3.DiscoverSectionType.featured
+        },
+        {
+          id: "updated_section",
+          title: "Recently Updated",
+          type: import_types3.DiscoverSectionType.simpleCarousel
+        },
+        {
+          id: "new_manga_section",
+          title: "New Manga",
+          type: import_types3.DiscoverSectionType.simpleCarousel
+        },
+        {
+          id: "genres_section",
+          title: "Genres",
+          type: import_types3.DiscoverSectionType.genres
+        }
+      ];
+    }
+    async getDiscoverSectionItems(section, metadata) {
+      switch (section.id) {
+        // case "featured_section":
+        //   return this.getFeaturedSectionItems(section, metadata);
+        case "popular_section":
+          return this.getPopularSectionItems(section, metadata);
+        case "updated_section":
+          return this.getUpdatedSectionItems(section, metadata);
+        case "new_manga_section":
+          return this.getNewMangaSectionItems(section, metadata);
+        case "genres_section":
+          return this.getFilterSection();
+        default:
+          return { items: [] };
+      }
+    }
+    async getSearchFilters() {
+      const filters2 = [];
+      filters2.push({
         id: "type",
         type: "dropdown",
         options: [
@@ -16609,7 +16753,7 @@ var source = (() => {
         value: "all",
         title: "Type Filter"
       });
-      Application.registerSearchFilter({
+      filters2.push({
         id: "genres",
         type: "multiselect",
         options: [
@@ -16661,7 +16805,7 @@ var source = (() => {
         allowEmptySelection: false,
         maximum: void 0
       });
-      Application.registerSearchFilter({
+      filters2.push({
         id: "status",
         type: "dropdown",
         options: [
@@ -16675,46 +16819,7 @@ var source = (() => {
         value: "all",
         title: "Status Filter"
       });
-    }
-    async getDiscoverSections() {
-      return [
-        {
-          id: "popular_section",
-          title: "Popular",
-          type: import_types3.DiscoverSectionType.featured
-        },
-        {
-          id: "updated_section",
-          title: "Recently Updated",
-          type: import_types3.DiscoverSectionType.simpleCarousel
-        },
-        {
-          id: "new_manga_section",
-          title: "New Manga",
-          type: import_types3.DiscoverSectionType.simpleCarousel
-        },
-        {
-          id: "genres_section",
-          title: "Genres",
-          type: import_types3.DiscoverSectionType.genres
-        }
-      ];
-    }
-    async getDiscoverSectionItems(section, metadata) {
-      switch (section.id) {
-        // case "featured_section":
-        //   return this.getFeaturedSectionItems(section, metadata);
-        case "popular_section":
-          return this.getPopularSectionItems(section, metadata);
-        case "updated_section":
-          return this.getUpdatedSectionItems(section, metadata);
-        case "new_manga_section":
-          return this.getNewMangaSectionItems(section, metadata);
-        case "genres_section":
-          return this.getFilterSection();
-        default:
-          return { items: [] };
-      }
+      return filters2;
     }
     async getSearchResults(query, metadata) {
       const page = metadata?.page ?? 1;
@@ -16758,10 +16863,7 @@ var source = (() => {
         }
         searchUrl.addQuery("status[]", statusValue);
       }
-      const request = {
-        url: searchUrl.build(),
-        method: "GET"
-      };
+      const request = { url: searchUrl.build(), method: "GET" };
       const $2 = await this.fetchCheerio(request);
       const searchResults = [];
       $2(".original.card-lg .unit .inner").each((_, element) => {
@@ -16891,10 +16993,7 @@ var source = (() => {
       try {
         const url = new URLBuilder(baseUrl).addPath("ajax").addPath("read").addPath("chapter").addPath(chapter.chapterId).build();
         console.log(url);
-        const request = {
-          url,
-          method: "GET"
-        };
+        const request = { url, method: "GET" };
         const [_, buffer] = await Application.scheduleRequest(request);
         const json = JSON.parse(
           Application.arrayBufferToUTF8String(buffer)
