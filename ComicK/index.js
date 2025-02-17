@@ -2364,8 +2364,8 @@ var source = (() => {
       "use strict";
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.AutoUpdatingSourceMangaWrapper = AutoUpdatingSourceMangaWrapper2;
-      function AutoUpdatingSourceMangaWrapper2(target, config = {
+      exports.AutoUpdatingSourceMangaWrapper = AutoUpdatingSourceMangaWrapper;
+      function AutoUpdatingSourceMangaWrapper(target, config = {
         interval: 7 * 24 * 60 * 60 * 1e3
       }) {
         return new Proxy(target, {
@@ -2412,7 +2412,7 @@ var source = (() => {
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.createFormState = createFormState2;
-      var FormState2 = class {
+      var FormState = class {
         form;
         _value;
         _selector;
@@ -2451,7 +2451,7 @@ var source = (() => {
         }
       };
       function createFormState2(form, initialValue) {
-        const state = new FormState2(form, initialValue);
+        const state = new FormState(form, initialValue);
         return [() => state.value, state.updateValue.bind(state), state.selector];
       }
     }
@@ -3146,29 +3146,6 @@ var source = (() => {
 
   // src/utils/state.ts
   init_buffer();
-  var FormState = class {
-    constructor(form, initialValue) {
-      this.form = form;
-      this._value = initialValue;
-      this._selector = Application.Selector(this, "updateValue");
-    }
-    _value;
-    _selector;
-    get value() {
-      return this._value;
-    }
-    get selector() {
-      return this._selector;
-    }
-    async updateValue(value) {
-      this._value = value;
-      this.form.reloadForm();
-    }
-  };
-  function createFormState(form, initialValue) {
-    const state = new FormState(form, initialValue);
-    return [() => state.value, state.updateValue.bind(state), state.selector];
-  }
   function getState(key, defaultValue) {
     return Application.getState(key) ?? defaultValue;
   }
@@ -3334,7 +3311,7 @@ var source = (() => {
     }
   };
   var UploaderForm = class extends import_types2.Form {
-    uploaderState = createFormState(this, "");
+    uploaderState = (0, import_types2.createFormState)(this, "");
     getSections() {
       const chapterScoreEnabled = getChapterScoreFiltering();
       const [uploader, , selectorUploader] = this.uploaderState;
@@ -3520,7 +3497,11 @@ var source = (() => {
           title: "Latest Uploads",
           type: import_types3.DiscoverSectionType.simpleCarousel
         },
-        { id: "genres", title: "Genres", type: import_types3.DiscoverSectionType.genres }
+        {
+          id: "genres",
+          title: "Genres",
+          type: import_types3.DiscoverSectionType.genres
+        }
       ];
     }
     async getDiscoverSectionItems(section, metadata) {
@@ -3717,7 +3698,10 @@ var source = (() => {
         builder.addQuery("demographic", Object.keys(demographic));
       }
       builder.addQuery("q", query.title.replace(/ /g, "%20"));
-      const request = { url: builder.build(), method: "GET" };
+      const request = {
+        url: builder.build(),
+        method: "GET"
+      };
       const parsedData = await this.fetchApi(request);
       const manga = parseSearch(parsedData);
       metadata = parsedData.length === LIMIT ? { page: page + 1, completed: false } : { completed: true };
@@ -3751,7 +3735,10 @@ var source = (() => {
     }
     async getDiscoverSectionItemsWrapper(section, metadata, sort, limit) {
       if (sort.length == 0) {
-        return { items: [], metadata: void 0 };
+        return {
+          items: [],
+          metadata: void 0
+        };
       }
       if (metadata?.completed) return import_types3.EndOfPageResults;
       const page = metadata?.page ?? 1;
@@ -3790,7 +3777,7 @@ var source = (() => {
       }
     }
   };
-  var ComicK = (0, import_types3.AutoUpdatingSourceMangaWrapper)(new ComicKExtension());
+  var ComicK = new ComicKExtension();
   return __toCommonJS(main_exports);
 })();
 /*! Bundled license information:

@@ -2364,8 +2364,8 @@ var source = (() => {
       "use strict";
       init_buffer();
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.AutoUpdatingSourceMangaWrapper = AutoUpdatingSourceMangaWrapper2;
-      function AutoUpdatingSourceMangaWrapper2(target, config = {
+      exports.AutoUpdatingSourceMangaWrapper = AutoUpdatingSourceMangaWrapper;
+      function AutoUpdatingSourceMangaWrapper(target, config = {
         interval: 7 * 24 * 60 * 60 * 1e3
       }) {
         return new Proxy(target, {
@@ -16893,13 +16893,21 @@ var source = (() => {
           title: "Most Viewed",
           type: import_types3.DiscoverSectionType.prominentCarousel
         },
-        { id: "new", title: "New", type: import_types3.DiscoverSectionType.simpleCarousel },
+        {
+          id: "new",
+          title: "New",
+          type: import_types3.DiscoverSectionType.simpleCarousel
+        },
         {
           id: "latest_updates",
           title: "Latest Updates",
           type: import_types3.DiscoverSectionType.simpleCarousel
         },
-        { id: "genres", title: "Genres", type: import_types3.DiscoverSectionType.genres }
+        {
+          id: "genres",
+          title: "Genres",
+          type: import_types3.DiscoverSectionType.genres
+        }
       ];
     }
     async getDiscoverSectionItems(section, metadata) {
@@ -16913,7 +16921,10 @@ var source = (() => {
         case "genres":
           return this.getGenreSectionItems();
         default:
-          return { items: [], metadata: void 0 };
+          return {
+            items: [],
+            metadata: void 0
+          };
       }
     }
     async saveCloudflareBypassCookies(cookies) {
@@ -17086,7 +17097,7 @@ var source = (() => {
       return load(Application.arrayBufferToUTF8String(data2));
     }
   };
-  var Mgeko = (0, import_types3.AutoUpdatingSourceMangaWrapper)(new MgekoExtension());
+  var Mgeko = new MgekoExtension();
   return __toCommonJS(main_exports);
 })();
 /*! Bundled license information:
