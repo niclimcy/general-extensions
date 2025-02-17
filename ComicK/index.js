@@ -3061,6 +3061,13 @@ var source = (() => {
       { id: "365", value: "1 year" }
     ];
   }
+  function parseComicTypeFilters() {
+    return [
+      { id: "kr", value: "Manhwa" },
+      { id: "jp", value: "Manga" },
+      { id: "cn", value: "Manhua" }
+    ];
+  }
   function parseContentRating(content_rating, matureContent) {
     if (content_rating === "erotica") {
       return import_types.ContentRating.ADULT;
@@ -3071,12 +3078,8 @@ var source = (() => {
     return import_types.ContentRating.EVERYONE;
   }
   function parseComicType(country) {
-    const comicTypeMap = {
-      kr: "Manhwa",
-      jp: "Manga",
-      cn: "Manhua"
-    };
-    return comicTypeMap[country];
+    const comicTypeFilters = parseComicTypeFilters();
+    return comicTypeFilters.find((filter) => filter.id === country)?.value;
   }
   function parseComicStatus(status) {
     const comicStatusMap = {
@@ -3625,7 +3628,7 @@ var source = (() => {
         title: "Demographic",
         value: {},
         allowEmptySelection: true,
-        maximum: void 0
+        maximum: demographicFilters.length
       });
       const typeFilters = parseTypeFilters();
       filters.push({
@@ -3642,6 +3645,17 @@ var source = (() => {
         options: createdAtFilters,
         value: "",
         title: "Created At"
+      });
+      const comicTypeFilters = parseComicTypeFilters();
+      filters.push({
+        type: "multiselect",
+        options: comicTypeFilters,
+        id: "comic-type",
+        allowExclusion: false,
+        title: "Comic Type",
+        value: {},
+        allowEmptySelection: true,
+        maximum: comicTypeFilters.length
       });
       const genres = await this.getGenres();
       const searchTagSections = parseTags(genres, "genres", "Genres");
@@ -3696,6 +3710,10 @@ var source = (() => {
       const demographic = getFilterValue("demographic");
       if (demographic && typeof demographic === "object") {
         builder.addQuery("demographic", Object.keys(demographic));
+      }
+      const comicType = getFilterValue("comic-type");
+      if (comicType && typeof comicType === "object") {
+        builder.addQuery("country", Object.keys(comicType));
       }
       builder.addQuery("q", query.title.replace(/ /g, "%20"));
       const request = {
