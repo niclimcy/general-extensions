@@ -3518,18 +3518,22 @@ var source = (() => {
         page++,
         limit
       );
-      chapters.concat(
-        parseChapterSinceDate(parseChapters(data, sourceManga, chapterFilter))
+      const parsedChapters = parseChapterSinceDate(
+        parseChapters(data, sourceManga, chapterFilter),
+        sinceDate
       );
+      parsedChapters.forEach((chapter) => chapters.push(chapter));
       while (data.chapters.length === limit) {
         data = await this.createChapterRequest(
           sourceManga.mangaId,
           page++,
           limit
         );
-        chapters.concat(
-          parseChapterSinceDate(parseChapters(data, sourceManga, chapterFilter))
+        const parsedChapters2 = parseChapterSinceDate(
+          parseChapters(data, sourceManga, chapterFilter),
+          sinceDate
         );
+        parsedChapters2.forEach((chapter) => chapters.push(chapter));
       }
       return chapters;
     }
