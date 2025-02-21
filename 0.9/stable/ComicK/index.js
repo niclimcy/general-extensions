@@ -2930,6 +2930,10 @@ var source = (() => {
   }
   function parseChapterSinceDate(chapters, sinceDate) {
     if (sinceDate) {
+      const lastChapter = chapters[chapters.length - 1];
+      if (lastChapter?.publishDate && lastChapter.publishDate <= sinceDate) {
+        return chapters.filter((c) => c.publishDate && c.publishDate > sinceDate);
+      }
     }
     return chapters;
   }
@@ -3514,8 +3518,8 @@ var source = (() => {
         page++,
         limit
       );
-      chapters.push(
-        ...parseChapterSinceDate(parseChapters(data, sourceManga, chapterFilter))
+      chapters.concat(
+        parseChapterSinceDate(parseChapters(data, sourceManga, chapterFilter))
       );
       while (data.chapters.length === limit) {
         data = await this.createChapterRequest(
@@ -3523,18 +3527,20 @@ var source = (() => {
           page++,
           limit
         );
-        chapters.push(
-          ...parseChapterSinceDate(
-            parseChapters(data, sourceManga, chapterFilter)
-          )
+        chapters.concat(
+          parseChapterSinceDate(parseChapters(data, sourceManga, chapterFilter))
         );
       }
       return chapters;
     }
     async createChapterRequest(mangaId, page, limit = 1e5) {
+      const builder = new URLBuilder2(COMICK_API).addPath("comic").addPath(mangaId).addPath("chapters").addQuery("page", page.toString()).addQuery("limit", limit.toString()).addQuery("tachiyomi", "true");
       const languages2 = getLanguages();
+      if (languages2[0] != "all") {
+        builder.addQuery("lang", languages2.join(","));
+      }
       const request = {
-        url: new URLBuilder2(COMICK_API).addPath("comic").addPath(mangaId).addPath("chapters").addQuery("page", page.toString()).addQuery("limit", limit.toString()).addQuery("lang", languages2.join(",")).addQuery("tachiyomi", "true").build(),
+        url: builder.build(),
         method: "GET"
       };
       const parsedData = await this.fetchApi(request);
