@@ -3514,8 +3514,8 @@ var source = (() => {
         page++,
         limit
       );
-      chapters.concat(
-        parseChapterSinceDate(parseChapters(data, sourceManga, chapterFilter))
+      chapters.push(
+        ...parseChapterSinceDate(parseChapters(data, sourceManga, chapterFilter))
       );
       while (data.chapters.length === limit) {
         data = await this.createChapterRequest(
@@ -3523,8 +3523,10 @@ var source = (() => {
           page++,
           limit
         );
-        chapters.concat(
-          parseChapterSinceDate(parseChapters(data, sourceManga, chapterFilter))
+        chapters.push(
+          ...parseChapterSinceDate(
+            parseChapters(data, sourceManga, chapterFilter)
+          )
         );
       }
       return chapters;
